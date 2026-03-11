@@ -12,6 +12,9 @@
       "integrity": "2487343e8899fb2be5d0e3d35013e54477ada198854e52dd05ed0422eddcabe0"
     }
   },
+  "remote": {
+    "https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.ts": "6c9e1cebb8124736b71521c6f5657f2cbd98d9f8af4da7411a89e3675f8ef9ed"
+  },
   "workspace": {
     "dependencies": [
       "jsr:@std/cli@1",
