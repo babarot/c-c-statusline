@@ -53,10 +53,13 @@ export async function renderStatusLine(
     (data.model as Record<string, string>)?.display_name ?? "Claude";
 
   // Context — prefer pre-calculated percentage from Claude Code
+  const USABLE_CONTEXT_RATIO = 0.8;
   const ctxWindow = data.context_window as Record<string, unknown> | undefined;
   const pctUsed = (ctxWindow?.used_percentage as number) ?? 0;
   const ctxSize = (ctxWindow?.context_window_size as number) ?? 200000;
   const ctxUsed = Math.round((pctUsed * ctxSize) / 100);
+  const usableTokens = Math.floor(ctxSize * USABLE_CONTEXT_RATIO);
+  const compactPct = Math.max(0, Math.min(100, Math.round(((usableTokens - ctxUsed) / usableTokens) * 100)));
 
   // CWD
   const cwd = (data.cwd as string) || Deno.cwd();
@@ -81,7 +84,8 @@ export async function renderStatusLine(
   const ctxText = options.ctxFormat
     .replace(/\{used\}/g, formatTokens(ctxUsed))
     .replace(/\{total\}/g, formatTokens(ctxSize))
-    .replace(/\{pct\}/g, String(pctUsed));
+    .replace(/\{pct\}/g, String(pctUsed))
+    .replace(/\{compact\}/g, String(compactPct));
   line1 += paint(ctxText, colorForPct(pctUsed));
 
   line1 += sep;

@@ -99,13 +99,20 @@ For `/Users/you/src/github.com/you/project`:
 
 ### ctx-format
 
-Use `{used}`, `{total}`, `{pct}` placeholders.
+Use `{used}`, `{total}`, `{pct}`, `{compact}` placeholders.
+
+| Placeholder | Description |
+|---|---|
+| `{used}` | Tokens used (e.g. `28k`) |
+| `{total}` | Context window size (e.g. `200k`) |
+| `{pct}` | Usage percentage (e.g. `14`) |
+| `{compact}` | Remaining % until auto-compact (based on 80% usable threshold) |
 
 | Value | Output |
 |---|---|
 | `ctx {used}/{total} ({pct}%)` | `ctx 28k/200k (14%)` |
 | `{pct}% ({used}/{total})` | `14% (28k/200k)` |
-| `{pct}%` | `14%` |
+| `{pct}% compact:{compact}%` | `14% compact:83%` |
 | `{used} of {total}` | `28k of 200k` |
 
 ### Themes
