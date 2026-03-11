@@ -1,5 +1,34 @@
 import { exec } from "./exec.ts";
 
+export interface GitSymbols {
+  unstaged: string;
+  staged: string;
+  stash: string;
+  untracked: string;
+  ahead: string;
+  behind: string;
+}
+
+export const defaultGitSymbols: GitSymbols = {
+  unstaged: "*",
+  staged: "+",
+  stash: "$",
+  untracked: "%",
+  ahead: "↑",
+  behind: "↓",
+};
+
+export function parseGitSymbols(input: string): Partial<GitSymbols> {
+  const result: Partial<GitSymbols> = {};
+  for (const pair of input.split(",")) {
+    const [key, val] = pair.split("=", 2);
+    if (key && val !== undefined && key in defaultGitSymbols) {
+      result[key as keyof GitSymbols] = val;
+    }
+  }
+  return result;
+}
+
 export interface GitInfo {
   /** Branch name, detached HEAD description, or null if not in a repo */
   branch: string | null;

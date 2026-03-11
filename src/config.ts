@@ -1,5 +1,5 @@
 import { parse, stringify } from "@std/yaml";
-import { type GitSymbols, defaultGitSymbols } from "./render.ts";
+import { type GitSymbols, defaultGitSymbols } from "./git.ts";
 
 export interface OptionsConfig {
   "bar-style"?: string;
@@ -57,6 +57,35 @@ export interface OptionDefaults {
   theme: string;
   "time-style": string;
   "ctx-format": string;
+}
+
+export const OPTION_DEFAULTS: OptionDefaults = {
+  "bar-style": "dot",
+  "path-style": "parent",
+  "theme": "default",
+  "time-style": "absolute",
+  "ctx-format": "ctx {used}/{total} ({pct}%)",
+};
+
+export interface MergedConfig {
+  defaults: Record<string, string>;
+  configGitSymbols: Partial<GitSymbols>;
+}
+
+export async function mergeDefaults(): Promise<MergedConfig> {
+  const config = await loadConfig();
+  const opts = config.options ?? {};
+  const defaults: Record<string, string> = { ...OPTION_DEFAULTS, "git-symbols": "" };
+  for (const key of Object.keys(OPTION_DEFAULTS)) {
+    const configVal = opts[key as keyof OptionDefaults];
+    if (configVal !== undefined && configVal !== null) {
+      defaults[key] = String(configVal);
+    }
+  }
+  if (typeof opts["git-symbols"] === "string") {
+    defaults["git-symbols"] = opts["git-symbols"];
+  }
+  return { defaults, configGitSymbols: resolveGitSymbolsFromConfig(config) };
 }
 
 export async function generateConfig(defaults: OptionDefaults): Promise<void> {

@@ -1,38 +1,10 @@
 import { colorForPct, dim, paint } from "./colors.ts";
 import { buildBar, formatPath, formatResetTime, formatTokens } from "./format.ts";
 import { getGitInfo } from "./git.ts";
+import type { GitSymbols } from "./git.ts";
 import { formatSessionDuration } from "./session.ts";
 import { readEffortLevel } from "./effort.ts";
 import { fetchUsageData } from "./usage.ts";
-
-export interface GitSymbols {
-  unstaged: string;
-  staged: string;
-  stash: string;
-  untracked: string;
-  ahead: string;
-  behind: string;
-}
-
-export const defaultGitSymbols: GitSymbols = {
-  unstaged: "*",
-  staged: "+",
-  stash: "$",
-  untracked: "%",
-  ahead: "↑",
-  behind: "↓",
-};
-
-export function parseGitSymbols(input: string): Partial<GitSymbols> {
-  const result: Partial<GitSymbols> = {};
-  for (const pair of input.split(",")) {
-    const [key, val] = pair.split("=", 2);
-    if (key && val !== undefined && key in defaultGitSymbols) {
-      result[key as keyof GitSymbols] = val;
-    }
-  }
-  return result;
-}
 
 export interface RenderOptions {
   barStyle: string;
@@ -54,6 +26,46 @@ function advanceReset(
   if (t >= now) return isoStr;
   const periods = Math.ceil((now - t) / windowMs);
   return new Date(t + periods * windowMs).toISOString();
+}
+
+import type { UsageData } from "./usage.ts";
+
+function renderRateLines(usageData: UsageData, options: RenderOptions): string {
+  const barWidth = 10;
+  const lines: string[] = [];
+
+  const fiveHourPct = Math.round(usageData.five_hour?.utilization ?? 0);
+  const fiveHourResetAt = advanceReset(usageData.five_hour?.resets_at, 5 * 60 * 60_000);
+  const fiveHourReset = formatResetTime(fiveHourResetAt, "time", options.timeStyle);
+  const fiveHourBar = buildBar(fiveHourPct, barWidth, options.barStyle);
+  const fiveHourPctFmt = String(fiveHourPct).padStart(3);
+
+  lines.push(`${paint("current", "muted")} ${fiveHourBar} ${paint(`${fiveHourPctFmt}%`, colorForPct(fiveHourPct))} ${dim("⟳")} ${paint(fiveHourReset, "muted")}`);
+
+  const sevenDayPct = Math.round(usageData.seven_day?.utilization ?? 0);
+  const sevenDayResetAt = advanceReset(usageData.seven_day?.resets_at, 7 * 24 * 60 * 60_000);
+  const sevenDayReset = formatResetTime(sevenDayResetAt, "datetime", options.timeStyle);
+  const sevenDayBar = buildBar(sevenDayPct, barWidth, options.barStyle);
+  const sevenDayPctFmt = String(sevenDayPct).padStart(3);
+
+  lines.push(`${paint("weekly", "muted")}  ${sevenDayBar} ${paint(`${sevenDayPctFmt}%`, colorForPct(sevenDayPct))} ${dim("⟳")} ${paint(sevenDayReset, "muted")}`);
+
+  if (usageData.extra_usage?.is_enabled && (usageData.extra_usage.used_credits ?? 0) > 0) {
+    const extraPct = Math.round(usageData.extra_usage.utilization ?? 0);
+    const extraUsed = ((usageData.extra_usage.used_credits ?? 0) / 100).toFixed(2);
+    const extraLimit = ((usageData.extra_usage.monthly_limit ?? 0) / 100).toFixed(2);
+    const extraBar = buildBar(extraPct, barWidth, options.barStyle);
+
+    const now = new Date();
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const extraReset = `${months[nextMonth.getMonth()]} ${nextMonth.getDate()}`;
+
+    lines.push(`${paint("extra", "muted")}   ${extraBar} ${paint(`$${extraUsed}`, colorForPct(extraPct))}${dim("/")}${paint(`$${extraLimit}`, "muted")}`);
+    lines.push(`${dim("resets")} ${paint(extraReset, "muted")}`);
+  }
+
+  return lines.join("\n");
 }
 
 export async function renderStatusLine(
@@ -161,42 +173,7 @@ export async function renderStatusLine(
       break;
   }
 
-  // ── Rate limit lines ────────────────────────────────
-  let rateLines = "";
-  const barWidth = 10;
-
-  if (usageData) {
-    const fiveHourPct = Math.round(usageData.five_hour?.utilization ?? 0);
-    const fiveHourResetAt = advanceReset(usageData.five_hour?.resets_at, 5 * 60 * 60_000);
-    const fiveHourReset = formatResetTime(fiveHourResetAt, "time", options.timeStyle);
-    const fiveHourBar = buildBar(fiveHourPct, barWidth, options.barStyle);
-    const fiveHourPctFmt = String(fiveHourPct).padStart(3);
-
-    rateLines += `${paint("current", "muted")} ${fiveHourBar} ${paint(`${fiveHourPctFmt}%`, colorForPct(fiveHourPct))} ${dim("⟳")} ${paint(fiveHourReset, "muted")}`;
-
-    const sevenDayPct = Math.round(usageData.seven_day?.utilization ?? 0);
-    const sevenDayResetAt = advanceReset(usageData.seven_day?.resets_at, 7 * 24 * 60 * 60_000);
-    const sevenDayReset = formatResetTime(sevenDayResetAt, "datetime", options.timeStyle);
-    const sevenDayBar = buildBar(sevenDayPct, barWidth, options.barStyle);
-    const sevenDayPctFmt = String(sevenDayPct).padStart(3);
-
-    rateLines += `\n${paint("weekly", "muted")}  ${sevenDayBar} ${paint(`${sevenDayPctFmt}%`, colorForPct(sevenDayPct))} ${dim("⟳")} ${paint(sevenDayReset, "muted")}`;
-
-    if (usageData.extra_usage?.is_enabled && (usageData.extra_usage.used_credits ?? 0) > 0) {
-      const extraPct = Math.round(usageData.extra_usage.utilization ?? 0);
-      const extraUsed = ((usageData.extra_usage.used_credits ?? 0) / 100).toFixed(2);
-      const extraLimit = ((usageData.extra_usage.monthly_limit ?? 0) / 100).toFixed(2);
-      const extraBar = buildBar(extraPct, barWidth, options.barStyle);
-
-      const now = new Date();
-      const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      const extraReset = `${months[nextMonth.getMonth()]} ${nextMonth.getDate()}`;
-
-      rateLines += `\n${paint("extra", "muted")}   ${extraBar} ${paint(`$${extraUsed}`, colorForPct(extraPct))}${dim("/")}${paint(`$${extraLimit}`, "muted")}`;
-      rateLines += `\n${dim("resets")} ${paint(extraReset, "muted")}`;
-    }
-  }
+  const rateLines = usageData ? renderRateLines(usageData, options) : "";
 
   // ── Compose ─────────────────────────────────────────
   let output = line1;

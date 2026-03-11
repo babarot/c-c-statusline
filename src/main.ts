@@ -2,32 +2,11 @@ import { parseArgs } from "@std/cli/parse-args";
 import { VERSION } from "./version.ts";
 import { setTheme } from "./colors.ts";
 import { themeNames } from "./themes.ts";
-import { renderStatusLine, defaultGitSymbols, parseGitSymbols } from "./render.ts";
-import { loadConfig, generateConfig, resolveGitSymbolsFromConfig, type OptionDefaults } from "./config.ts";
+import { renderStatusLine } from "./render.ts";
+import { defaultGitSymbols, parseGitSymbols } from "./git.ts";
+import { mergeDefaults, generateConfig, OPTION_DEFAULTS } from "./config.ts";
 
-const DEFAULTS: OptionDefaults = {
-  "bar-style": "dot",
-  "path-style": "parent",
-  "theme": "default",
-  "time-style": "absolute",
-  "ctx-format": "ctx {used}/{total} ({pct}%)",
-};
-
-const config = await loadConfig();
-const opts = config.options ?? {};
-
-// Config file values override built-in defaults; CLI flags override both.
-const mergedDefaults: Record<string, string> = { ...DEFAULTS, "git-symbols": "" };
-for (const key of Object.keys(DEFAULTS)) {
-  const configVal = opts[key as keyof OptionDefaults];
-  if (configVal !== undefined && configVal !== null) {
-    mergedDefaults[key] = String(configVal);
-  }
-}
-// If config has git-symbols as string, pass it through to CLI defaults
-if (typeof opts["git-symbols"] === "string") {
-  mergedDefaults["git-symbols"] = opts["git-symbols"];
-}
+const { defaults: mergedDefaults, configGitSymbols } = await mergeDefaults();
 
 const args = parseArgs(Deno.args, {
   boolean: ["help", "version", "debug", "init-config"],
@@ -37,7 +16,7 @@ const args = parseArgs(Deno.args, {
 });
 
 if (args["init-config"]) {
-  await generateConfig(DEFAULTS);
+  await generateConfig(OPTION_DEFAULTS);
   Deno.exit(0);
 }
 
@@ -123,8 +102,6 @@ try {
   Deno.exit(0);
 }
 
-// Merge: defaults → config YAML map → CLI flag string
-const configGitSymbols = resolveGitSymbolsFromConfig(config);
 const cliGitSymbols = parseGitSymbols(args["git-symbols"] as string);
 const gitSymbols = { ...defaultGitSymbols, ...configGitSymbols, ...cliGitSymbols };
 
