@@ -1,6 +1,5 @@
 #!/usr/bin/env -S deno run --allow-read --allow-write --allow-env --allow-run --allow-net
 
-import { parseArgs } from "jsr:@std/cli@1/parse-args";
 import { rgb24 } from "jsr:@std/fmt@1/colors";
 
 const blue = (s: string) => rgb24(s, 0x0099ff);
@@ -241,33 +240,34 @@ async function install(extraArgs: string[]) {
 
 // ── Main ────────────────────────────────────────────────
 
-const args = parseArgs(Deno.args, {
-  boolean: ["uninstall", "help"],
-  string: ["bar-style", "path-style"],
-});
+const installerFlags = new Set(["--uninstall", "--help"]);
+const isUninstall = Deno.args.includes("--uninstall");
+const isHelp = Deno.args.includes("--help");
+const extraArgs = Deno.args.filter((a) => !installerFlags.has(a));
 
-if (args.help) {
+if (isHelp) {
   console.log(`
   ${blue("Claude Code Statusline")}
 
   ${dim("Usage:")}
-    deno run -A install.ts              Install with defaults
-    deno run -A install.ts --uninstall  Uninstall
+    deno run -A install.ts [options]     Install with options
+    deno run -A install.ts --uninstall   Uninstall
 
-  ${dim("Options:")}
-    --bar-style <dot|block|fill>              Bar style (default: dot)
-    --path-style <parent|full|short|basename> Path style (default: parent)
-    --uninstall                               Remove statusline
-    --help                                    Show this help
+  ${dim("Installer options:")}
+    --uninstall   Remove statusline
+    --help        Show this help
+
+  All other options are forwarded to the statusline binary.
+  Run ${dim("c-c-statusline --help")} to see available options.
+
+  ${dim("Example:")}
+    deno run -A install.ts --theme tokyo-night --bar-style block
 `);
   Deno.exit(0);
 }
 
-if (args.uninstall) {
+if (isUninstall) {
   await uninstall();
 } else {
-  const extraArgs: string[] = [];
-  if (args["bar-style"]) extraArgs.push("--bar-style", args["bar-style"]);
-  if (args["path-style"]) extraArgs.push("--path-style", args["path-style"]);
   await install(extraArgs);
 }
