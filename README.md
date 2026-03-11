@@ -8,8 +8,6 @@ Shows model info, context usage, rate limits, git status, session duration, and 
 
 ## Install
 
-### Binary (recommended)
-
 Downloads a precompiled binary from GitHub Releases. No runtime dependencies needed.
 
 ```bash
@@ -23,62 +21,96 @@ npx @babarot/c-c-statusline
 deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.ts
 ```
 
-### Options
+## Configure
 
-Pass options during install to customize the statusline:
+### Config file (recommended)
+
+Generate `~/.claude/statusline.yaml` with defaults:
 
 ```bash
+# After install
+~/.claude/c-c-statusline --init-config
+
+# Or during install
+curl -fsSL https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.sh \
+  | bash -s -- --init-config
+```
+
+Then edit to your liking:
+
+```yaml
+options:
+  bar-style: block
+  path-style: short
+  theme: tokyo-night-storm
+  time-style: relative
+  ctx-format: 'ctx {used}/{total} ({pct}%)'
+  git-symbols:
+    stash: "-"
+    untracked: "?"
+```
+
+### CLI flags
+
+CLI flags override config file values. Useful for quick testing or one-off overrides.
+
+```bash
+# Pass flags during install to set defaults in settings.json
 curl -fsSL https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.sh \
   | bash -s -- --bar-style block --path-style short --theme tokyo-night
 ```
 
+## Options
+
 | Option | Values | Default | Description |
 |---|---|---|---|
-| `--bar-style` | `dot`, `block`, `fill` | `dot` | Progress bar style |
-| `--path-style` | `parent`, `full`, `short`, `basename` | `parent` | Directory display style |
-| `--theme` | See [Themes](#themes) | `default` | Color theme |
-| `--time-style` | `absolute`, `relative` | `absolute` | Reset time format |
-| `--ctx-format` | Format string | `ctx {used}/{total} ({pct}%)` | Context display format |
-| `--git-symbols` | `key=val,...` | See [Git symbols](#git-symbols) | Override git status symbols |
+| `bar-style` | `dot`, `block`, `fill` | `dot` | Progress bar style |
+| `path-style` | `parent`, `full`, `short`, `basename` | `parent` | Directory display style |
+| `theme` | See [Themes](#themes) | `default` | Color theme |
+| `time-style` | `absolute`, `relative` | `absolute` | Reset time format |
+| `ctx-format` | Format string | `ctx {used}/{total} ({pct}%)` | Context display format |
+| `git-symbols` | Map or `key=val,...` | See [below](#git-symbols) | Override git status symbols |
 
-**Bar styles** (`--bar-style`):
+### bar-style
 
-| Option | Output |
+| Value | Output |
 |---|---|
-| `--bar-style dot` | `●●●●○○○○○○` |
-| `--bar-style block` | `▰▰▰▰▱▱▱▱▱▱` |
-| `--bar-style fill` | `████░░░░░░` |
+| `dot` | `●●●●○○○○○○` |
+| `block` | `▰▰▰▰▱▱▱▱▱▱` |
+| `fill` | `████░░░░░░` |
 
-**Path styles** (`--path-style`, for `/Users/you/src/github.com/you/project`):
+### path-style
 
-| Option | Output |
+For `/Users/you/src/github.com/you/project`:
+
+| Value | Output |
 |---|---|
-| `--path-style parent` | `you/project` |
-| `--path-style full` | `~/src/github.com/you/project` |
-| `--path-style short` | `~/s/g/you/project` |
-| `--path-style basename` | `project` |
+| `parent` | `you/project` |
+| `full` | `~/src/github.com/you/project` |
+| `short` | `~/s/g/you/project` |
+| `basename` | `project` |
 
-**Time styles** (`--time-style`):
+### time-style
 
-| Option | Output |
+| Value | Output |
 |---|---|
-| `--time-style absolute` | `8:00pm`, `Mar 12, 2:00pm` |
-| `--time-style relative` | `1h 30m left`, `2d 5h left` |
+| `absolute` | `8:00pm`, `Mar 12, 2:00pm` |
+| `relative` | `1h 30m left`, `2d 5h left` |
 
-**Context format** (`--ctx-format`):
+### ctx-format
 
-Use `{used}`, `{total}`, `{pct}` placeholders to build any format.
+Use `{used}`, `{total}`, `{pct}` placeholders.
 
-| Option | Output |
+| Value | Output |
 |---|---|
-| `--ctx-format 'ctx {used}/{total} ({pct}%)'` | `ctx 28k/200k (14%)` |
-| `--ctx-format '{pct}% ({used}/{total})'` | `14% (28k/200k)` |
-| `--ctx-format '{pct}%'` | `14%` |
-| `--ctx-format '{used} of {total}'` | `28k of 200k` |
+| `ctx {used}/{total} ({pct}%)` | `ctx 28k/200k (14%)` |
+| `{pct}% ({used}/{total})` | `14% (28k/200k)` |
+| `{pct}%` | `14%` |
+| `{used} of {total}` | `28k of 200k` |
 
 ### Themes
 
-Built-in color themes using 24-bit True Color (RGB). Each theme defines 8 semantic color roles (`primary`, `secondary`, `success`, `warning`, `caution`, `danger`, `muted`, `accent`), so every theme can map any color to any role.
+Built-in color themes using 24-bit True Color (RGB). Each theme defines 8 semantic color roles (`primary`, `secondary`, `success`, `warning`, `caution`, `danger`, `muted`, `accent`).
 
 | Theme | Description |
 |---|---|
@@ -95,6 +127,32 @@ Built-in color themes using 24-bit True Color (RGB). Each theme defines 8 semant
 | `github-dark` | [GitHub Dark](https://github.com/primer/primitives) |
 | `kanagawa` | [Kanagawa](https://github.com/rebelot/kanagawa.nvim) |
 | `rose-pine` | [Rosé Pine](https://rosepinetheme.com/) |
+
+### Git symbols
+
+Override any git status symbol. In the config file, use a map; with CLI flags, use `key=val,...` format.
+
+| Key | Default | Description |
+|---|---|---|
+| `unstaged` | `*` | Unstaged changes |
+| `staged` | `+` | Staged changes |
+| `stash` | `$` | Stash entries exist |
+| `untracked` | `%` | Untracked files |
+| `ahead` | `↑` | Ahead of upstream |
+| `behind` | `↓` | Behind upstream |
+
+Config file:
+```yaml
+options:
+  git-symbols:
+    stash: "-"
+    untracked: "?"
+```
+
+CLI flag:
+```bash
+--git-symbols "stash=-,untracked=?"
+```
 
 ## What it shows
 
@@ -126,58 +184,6 @@ Inspired by [git-prompt.sh](https://github.com/git/git/blob/master/contrib/compl
 | `\|AM` | `git am` in progress |
 
 Detached HEAD is shown in red with a tag or short SHA.
-
-### Git symbols
-
-Override any git status symbol with `--git-symbols "key=val,key=val"`. Only specified keys are overridden; the rest keep their defaults.
-
-| Key | Default | Description |
-|---|---|---|
-| `unstaged` | `*` | Unstaged changes |
-| `staged` | `+` | Staged changes |
-| `stash` | `$` | Stash entries exist |
-| `untracked` | `%` | Untracked files |
-| `ahead` | `↑` | Ahead of upstream |
-| `behind` | `↓` | Behind upstream |
-
-**Examples:**
-
-```bash
-# Use '-' for stash and '?' for untracked
---git-symbols "stash=-,untracked=?"
-
-# Minimal style
---git-symbols "unstaged=~,staged=+,stash=-,untracked=?,ahead=+,behind=-"
-```
-
-## Config file
-
-Options can be set in `~/.claude/statusline.yaml` instead of CLI flags. Generate a config file with defaults:
-
-```bash
-# After install
-~/.claude/c-c-statusline --init-config
-
-# Or during install
-curl -fsSL https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.sh \
-  | bash -s -- --init-config
-```
-
-Example `~/.claude/statusline.yaml`:
-
-```yaml
-options:
-  bar-style: block
-  path-style: short
-  theme: tokyo-night-storm
-  time-style: relative
-  # git-symbols as a map (instead of CLI string format)
-  git-symbols:
-    stash: "-"
-    untracked: "?"
-```
-
-CLI flags override config values. If no config file exists, built-in defaults are used.
 
 ## Uninstall
 
