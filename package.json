@@ -1,0 +1,27 @@
+{
+  "name": "@babarot/c-c-statusline",
+  "version": "0.1.0",
+  "description": "A Deno-powered status line for Claude Code CLI showing model, context usage, rate limits, and more",
+  "bin": {
+    "c-c-statusline": "./bin/install.js"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "statusline",
+    "deno",
+    "cli"
+  ],
+  "license": "MIT",
+  "author": "babarot",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/babarot/c-c-statusline"
+  },
+  "files": [
+    "bin/install.js"
+  ],
+  "engines": {
+    "node": ">=18"
+  }
+}

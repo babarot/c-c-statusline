@@ -1,0 +1,25 @@
+{
+  "name": "@babarot/c-c-statusline",
+  "version": "0.2.0",
+  "exports": "./src/main.ts",
+  "imports": {
+    "@std/cli/parse-args": "jsr:@std/cli@^1/parse-args",
+    "@std/fmt/colors": "jsr:@std/fmt@^1/colors"
+  },
+  "publish": {
+    "include": [
+      "src/**/*.ts",
+      "deno.json",
+      "README.md",
+      "LICENSE"
+    ]
+  },
+  "tasks": {
+    "dev": "echo '{\"model\":{\"display_name\":\"Opus\"},\"context_window\":{\"context_window_size\":200000,\"current_usage\":{\"input_tokens\":80000}},\"cwd\":\"/Users/babarot/src/github.com/babarot/dotfiles\"}' | deno run --allow-run --allow-read --allow-env --allow-net src/main.ts --bar-style block --path-style short",
+    "compile": "deno compile --allow-run=git,security --allow-read --allow-env=HOME,CLAUDE_CODE_OAUTH_TOKEN --allow-net=api.anthropic.com -o c-c-statusline src/main.ts",
+    "compile:macos-arm": "deno compile --target aarch64-apple-darwin --allow-run=git,security --allow-read --allow-env=HOME,CLAUDE_CODE_OAUTH_TOKEN --allow-net=api.anthropic.com -o dist/c-c-statusline-darwin-arm64 src/main.ts",
+    "compile:macos-x86": "deno compile --target x86_64-apple-darwin --allow-run=git,security --allow-read --allow-env=HOME,CLAUDE_CODE_OAUTH_TOKEN --allow-net=api.anthropic.com -o dist/c-c-statusline-darwin-x86_64 src/main.ts",
+    "compile:linux-arm": "deno compile --target aarch64-unknown-linux-gnu --allow-run=git,security --allow-read --allow-env=HOME,CLAUDE_CODE_OAUTH_TOKEN --allow-net=api.anthropic.com -o dist/c-c-statusline-linux-arm64 src/main.ts",
+    "compile:linux-x86": "deno compile --target x86_64-unknown-linux-gnu --allow-run=git,security --allow-read --allow-env=HOME,CLAUDE_CODE_OAUTH_TOKEN --allow-net=api.anthropic.com -o dist/c-c-statusline-linux-x86_64 src/main.ts"
+  }
+}

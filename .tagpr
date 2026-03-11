@@ -1,0 +1,7 @@
+[tagpr]
+	releaseBranch = main
+	vPrefix = true
+	versionFile = src/version.ts,deno.json,package.json
+	changelog = true
+	majorLabels = release/major
+	minorLabels = release/minor
