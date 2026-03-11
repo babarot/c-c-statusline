@@ -42,6 +42,20 @@ export interface RenderOptions {
   gitSymbols: GitSymbols;
 }
 
+/** Advance a past resets_at by windowMs increments until it's in the future. */
+function advanceReset(
+  isoStr: string | undefined | null,
+  windowMs: number,
+): string | undefined | null {
+  if (!isoStr) return isoStr;
+  const t = new Date(isoStr).getTime();
+  if (isNaN(t)) return isoStr;
+  const now = Date.now();
+  if (t >= now) return isoStr;
+  const periods = Math.ceil((now - t) / windowMs);
+  return new Date(t + periods * windowMs).toISOString();
+}
+
 export async function renderStatusLine(
   data: Record<string, unknown>,
   options: RenderOptions,
@@ -153,14 +167,16 @@ export async function renderStatusLine(
 
   if (usageData) {
     const fiveHourPct = Math.round(usageData.five_hour?.utilization ?? 0);
-    const fiveHourReset = formatResetTime(usageData.five_hour?.resets_at, "time", options.timeStyle);
+    const fiveHourResetAt = advanceReset(usageData.five_hour?.resets_at, 5 * 60 * 60_000);
+    const fiveHourReset = formatResetTime(fiveHourResetAt, "time", options.timeStyle);
     const fiveHourBar = buildBar(fiveHourPct, barWidth, options.barStyle);
     const fiveHourPctFmt = String(fiveHourPct).padStart(3);
 
     rateLines += `${paint("current", "muted")} ${fiveHourBar} ${paint(`${fiveHourPctFmt}%`, colorForPct(fiveHourPct))} ${dim("⟳")} ${paint(fiveHourReset, "muted")}`;
 
     const sevenDayPct = Math.round(usageData.seven_day?.utilization ?? 0);
-    const sevenDayReset = formatResetTime(usageData.seven_day?.resets_at, "datetime", options.timeStyle);
+    const sevenDayResetAt = advanceReset(usageData.seven_day?.resets_at, 7 * 24 * 60 * 60_000);
+    const sevenDayReset = formatResetTime(sevenDayResetAt, "datetime", options.timeStyle);
     const sevenDayBar = buildBar(sevenDayPct, barWidth, options.barStyle);
     const sevenDayPctFmt = String(sevenDayPct).padStart(3);
 
