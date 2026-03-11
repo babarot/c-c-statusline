@@ -334,15 +334,18 @@ Deno.test("getGitInfo: detects behind count", async () => {
     await gitOk(remote, "init", "--bare");
     await gitOk(dir, "remote", "add", "origin", remote);
     await gitOk(dir, "push", "-u", "origin", "main");
-    // Clone the remote to make a commit there, then push
+    // Create a second local clone with explicit branch to avoid default branch issues
     const other = await Deno.makeTempDir({ prefix: "git_test_other_" });
-    await gitOk(other, "clone", remote, ".");
+    await gitOk(other, "init", "-b", "main");
     await gitOk(other, "config", "user.email", "test@test.com");
     await gitOk(other, "config", "user.name", "Test");
+    await gitOk(other, "remote", "add", "origin", remote);
+    await gitOk(other, "fetch", "origin");
+    await gitOk(other, "reset", "--hard", "origin/main");
     await Deno.writeTextFile(`${other}/other.txt`, "other");
     await gitOk(other, "add", "other.txt");
     await gitOk(other, "commit", "-m", "other");
-    await gitOk(other, "push");
+    await gitOk(other, "push", "origin", "main");
     // Fetch so our repo knows about the new commit
     await gitOk(dir, "fetch");
     const info = await getGitInfo(dir);
