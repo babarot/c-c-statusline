@@ -4,6 +4,8 @@ A Deno-powered status line for [Claude Code](https://docs.anthropic.com/en/docs/
 
 Shows model info, context usage, rate limits, git status, session duration, and more — right in your terminal.
 
+![screenshot](ss.png)
+
 ## Install
 
 ### Binary (recommended)

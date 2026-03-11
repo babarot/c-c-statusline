@@ -40,7 +40,7 @@ export const themes: Record<string, ThemePalette> = {
   "tokyo-night": {
     primary: 0x7aa2f7,    // signature blue
     secondary: 0x7dcfff,  // light cyan — distinct but cohesive
-    success: 0x9ece6a,    // TN green
+    success: 0x787c99,    // muted gray-blue
     warning: 0xff9e64,    // TN orange
     caution: 0xe0af68,    // TN yellow
     danger: 0xf7768e,     // TN red/pink
