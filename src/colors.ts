@@ -1,27 +1,23 @@
 import { dim as stdDim, rgb24 } from "@std/fmt/colors";
+import { type ThemePalette, resolveTheme } from "./themes.ts";
 
-export const palette = {
-  blue: 0x0099ff,
-  orange: 0xffb055,
-  green: 0x00af50,
-  cyan: 0x56b6c2,
-  red: 0xff5555,
-  yellow: 0xe6c800,
-  white: 0xdcdcdc,
-  magenta: 0xb48cff,
-} as const;
+let activePalette: ThemePalette = resolveTheme("default");
 
-export type Color = keyof typeof palette;
+export function setTheme(name: string): void {
+  activePalette = resolveTheme(name);
+}
+
+export type Color = keyof ThemePalette;
 
 export function paint(text: string, color: Color): string {
-  return rgb24(text, palette[color]);
+  return rgb24(text, activePalette[color]);
 }
 
 export function colorForPct(pct: number): Color {
-  if (pct >= 90) return "red";
-  if (pct >= 70) return "yellow";
-  if (pct >= 50) return "orange";
-  return "green";
+  if (pct >= 90) return "danger";
+  if (pct >= 70) return "caution";
+  if (pct >= 50) return "warning";
+  return "success";
 }
 
 export const dim = stdDim;

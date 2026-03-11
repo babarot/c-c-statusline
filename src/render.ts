@@ -49,31 +49,31 @@ export async function renderStatusLine(
   );
 
   // ── Line 1 ──────────────────────────────────────────
-  let line1 = paint(modelName, "blue");
+  let line1 = paint(modelName, "primary");
   line1 += sep;
   line1 += `✍️ ${paint(`${pctUsed}%`, colorForPct(pctUsed))}`;
   line1 += sep;
-  line1 += paint(dirname, "cyan");
+  line1 += paint(dirname, "secondary");
 
   if (gitInfo.branch) {
-    // Branch name: green if attached, red if detached
-    const branchColor = gitInfo.detached ? "red" : "green";
+    // Branch name: success if attached, danger if detached
+    const branchColor = gitInfo.detached ? "danger" : "success";
     let gitPart = paint(gitInfo.branch, branchColor);
 
     // State flags: *=unstaged, +=staged, $=stash, %=untracked
     const flags: string[] = [];
-    if (gitInfo.unstaged) flags.push(paint("*", "red"));
-    if (gitInfo.staged) flags.push(paint("+", "green"));
-    if (gitInfo.stash) flags.push(paint("$", "blue"));
-    if (gitInfo.untracked) flags.push(paint("%", "red"));
+    if (gitInfo.unstaged) flags.push(paint("*", "danger"));
+    if (gitInfo.staged) flags.push(paint("+", "success"));
+    if (gitInfo.stash) flags.push(paint("$", "primary"));
+    if (gitInfo.untracked) flags.push(paint("%", "danger"));
     if (flags.length > 0) {
       gitPart += ` ${flags.join("")}`;
     }
 
     // Upstream: ahead/behind
     const upstream: string[] = [];
-    if (gitInfo.ahead > 0) upstream.push(paint(`↑${gitInfo.ahead}`, "green"));
-    if (gitInfo.behind > 0) upstream.push(paint(`↓${gitInfo.behind}`, "red"));
+    if (gitInfo.ahead > 0) upstream.push(paint(`↑${gitInfo.ahead}`, "success"));
+    if (gitInfo.behind > 0) upstream.push(paint(`↓${gitInfo.behind}`, "danger"));
     if (gitInfo.ahead === 0 && gitInfo.behind === 0 && gitInfo.branch && !gitInfo.detached) {
       // only show = if upstream exists (we got a count back)
       // We can't distinguish "no upstream" from "equal" here since both give ahead=0 behind=0
@@ -86,7 +86,7 @@ export async function renderStatusLine(
 
     // Operation: |REBASE, |MERGING, etc.
     if (gitInfo.operation) {
-      gitPart += paint(`|${gitInfo.operation}`, "magenta");
+      gitPart += paint(`|${gitInfo.operation}`, "accent");
     }
 
     line1 += ` ${paint("(", branchColor)}${gitPart}${paint(")", branchColor)}`;
@@ -94,13 +94,13 @@ export async function renderStatusLine(
 
   if (sessionDuration) {
     line1 += sep;
-    line1 += `${dim("⏱")} ${paint(sessionDuration, "white")}`;
+    line1 += `${dim("⏱")} ${paint(sessionDuration, "muted")}`;
   }
 
   line1 += sep;
   switch (effort) {
     case "high":
-      line1 += paint(`● ${effort}`, "magenta");
+      line1 += paint(`● ${effort}`, "accent");
       break;
     case "low":
       line1 += dim(`◔ ${effort}`);
@@ -120,14 +120,14 @@ export async function renderStatusLine(
     const fiveHourBar = buildBar(fiveHourPct, barWidth, options.barStyle);
     const fiveHourPctFmt = String(fiveHourPct).padStart(3);
 
-    rateLines += `${paint("current", "white")} ${fiveHourBar} ${paint(`${fiveHourPctFmt}%`, colorForPct(fiveHourPct))} ${dim("⟳")} ${paint(fiveHourReset, "white")}`;
+    rateLines += `${paint("current", "muted")} ${fiveHourBar} ${paint(`${fiveHourPctFmt}%`, colorForPct(fiveHourPct))} ${dim("⟳")} ${paint(fiveHourReset, "muted")}`;
 
     const sevenDayPct = Math.round(usageData.seven_day?.utilization ?? 0);
     const sevenDayReset = formatResetTime(usageData.seven_day?.resets_at, "datetime");
     const sevenDayBar = buildBar(sevenDayPct, barWidth, options.barStyle);
     const sevenDayPctFmt = String(sevenDayPct).padStart(3);
 
-    rateLines += `\n${paint("weekly", "white")}  ${sevenDayBar} ${paint(`${sevenDayPctFmt}%`, colorForPct(sevenDayPct))} ${dim("⟳")} ${paint(sevenDayReset, "white")}`;
+    rateLines += `\n${paint("weekly", "muted")}  ${sevenDayBar} ${paint(`${sevenDayPctFmt}%`, colorForPct(sevenDayPct))} ${dim("⟳")} ${paint(sevenDayReset, "muted")}`;
 
     if (usageData.extra_usage?.is_enabled && (usageData.extra_usage.used_credits ?? 0) > 0) {
       const extraPct = Math.round(usageData.extra_usage.utilization ?? 0);
@@ -140,8 +140,8 @@ export async function renderStatusLine(
       const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
       const extraReset = `${months[nextMonth.getMonth()]} ${nextMonth.getDate()}`;
 
-      rateLines += `\n${paint("extra", "white")}   ${extraBar} ${paint(`$${extraUsed}`, colorForPct(extraPct))}${dim("/")}${paint(`$${extraLimit}`, "white")}`;
-      rateLines += `\n${dim("resets")} ${paint(extraReset, "white")}`;
+      rateLines += `\n${paint("extra", "muted")}   ${extraBar} ${paint(`$${extraUsed}`, colorForPct(extraPct))}${dim("/")}${paint(`$${extraLimit}`, "muted")}`;
+      rateLines += `\n${dim("resets")} ${paint(extraReset, "muted")}`;
     }
   }
 

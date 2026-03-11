@@ -1,11 +1,13 @@
 import { parseArgs } from "@std/cli/parse-args";
 import { VERSION } from "./version.ts";
+import { setTheme } from "./colors.ts";
+import { themeNames } from "./themes.ts";
 import { renderStatusLine } from "./render.ts";
 
 const args = parseArgs(Deno.args, {
   boolean: ["help", "version"],
-  string: ["bar-style", "path-style"],
-  default: { "bar-style": "dot", "path-style": "parent" },
+  string: ["bar-style", "path-style", "theme"],
+  default: { "bar-style": "dot", "path-style": "parent", "theme": "default" },
   alias: { h: "help", v: "version" },
 });
 
@@ -21,8 +23,11 @@ Usage:
 Options:
   --bar-style <dot|block|fill>              Bar style (default: dot)
   --path-style <parent|full|short|basename> Path style (default: parent)
+  --theme <name>                            Color theme (default: default)
   -h, --help                                Show this help
-  -v, --version                             Show version`);
+  -v, --version                             Show version
+
+Themes: ${themeNames.join(", ")}`);
   Deno.exit(0);
 }
 
@@ -51,6 +56,8 @@ if (!rawInput.trim()) {
   console.log("Claude");
   Deno.exit(0);
 }
+
+setTheme(args.theme);
 
 let data: Record<string, unknown>;
 try {
