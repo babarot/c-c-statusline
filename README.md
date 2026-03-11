@@ -41,40 +41,40 @@ curl -fsSL https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/ins
 | `--ctx-format` | Format string | `ctx {used}/{total} ({pct}%)` | Context display format |
 | `--git-symbols` | `key=val,...` | See [Git symbols](#git-symbols) | Override git status symbols |
 
-**Bar styles:**
+**Bar styles** (`--bar-style`):
 
-| Style | Example |
+| Option | Output |
 |---|---|
-| `dot` | `●●●●○○○○○○` |
-| `block` | `▰▰▰▰▱▱▱▱▱▱` |
-| `fill` | `████░░░░░░` |
+| `--bar-style dot` | `●●●●○○○○○○` |
+| `--bar-style block` | `▰▰▰▰▱▱▱▱▱▱` |
+| `--bar-style fill` | `████░░░░░░` |
 
-**Path styles** (for `/Users/you/src/github.com/you/project`):
+**Path styles** (`--path-style`, for `/Users/you/src/github.com/you/project`):
 
-| Style | Example |
+| Option | Output |
 |---|---|
-| `parent` | `you/project` |
-| `full` | `~/src/github.com/you/project` |
-| `short` | `~/s/g/you/project` |
-| `basename` | `project` |
+| `--path-style parent` | `you/project` |
+| `--path-style full` | `~/src/github.com/you/project` |
+| `--path-style short` | `~/s/g/you/project` |
+| `--path-style basename` | `project` |
 
-**Time styles:**
+**Time styles** (`--time-style`):
 
-| Style | Example |
+| Option | Output |
 |---|---|
-| `absolute` | `8:00pm`, `Mar 12, 2:00pm` |
-| `relative` | `1h 30m left`, `2d 5h left` |
+| `--time-style absolute` | `8:00pm`, `Mar 12, 2:00pm` |
+| `--time-style relative` | `1h 30m left`, `2d 5h left` |
 
 **Context format** (`--ctx-format`):
 
 Use `{used}`, `{total}`, `{pct}` placeholders to build any format.
 
-| Format string | Example |
+| Option | Output |
 |---|---|
-| `ctx {used}/{total} ({pct}%)` | `ctx 28k/200k (14%)` |
-| `{pct}% ({used}/{total})` | `14% (28k/200k)` |
-| `{pct}%` | `14%` |
-| `{used} of {total}` | `28k of 200k` |
+| `--ctx-format 'ctx {used}/{total} ({pct}%)'` | `ctx 28k/200k (14%)` |
+| `--ctx-format '{pct}% ({used}/{total})'` | `14% (28k/200k)` |
+| `--ctx-format '{pct}%'` | `14%` |
+| `--ctx-format '{used} of {total}'` | `28k of 200k` |
 
 ### Themes
 
