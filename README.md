@@ -24,13 +24,14 @@ Pass options during install to customize the statusline:
 
 ```bash
 deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.ts \
-  --bar-style block --path-style short
+  --bar-style block --path-style short --theme tokyo-night
 ```
 
 | Option | Values | Default | Description |
 |---|---|---|---|
 | `--bar-style` | `dot`, `block`, `fill` | `dot` | Progress bar style |
 | `--path-style` | `parent`, `full`, `short`, `basename` | `parent` | Directory display style |
+| `--theme` | See [Themes](#themes) | `default` | Color theme |
 
 **Bar styles:**
 
@@ -48,6 +49,26 @@ deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/in
 | `full` | `~/src/github.com/you/project` |
 | `short` | `~/s/g/you/project` |
 | `basename` | `project` |
+
+### Themes
+
+Built-in color themes using 24-bit True Color (RGB). Each theme defines 8 semantic color roles (`primary`, `secondary`, `success`, `warning`, `caution`, `danger`, `muted`, `accent`), so every theme can map any color to any role.
+
+| Theme | Description |
+|---|---|
+| `default` | Original palette |
+| `tokyo-night` | [Tokyo Night](https://github.com/enkia/tokyo-night-vscode-theme) Dark |
+| `tokyo-night-storm` | Tokyo Night Storm |
+| `tokyo-night-light` | Tokyo Night Light |
+| `catppuccin-mocha` | [Catppuccin](https://github.com/catppuccin/catppuccin) Mocha |
+| `dracula` | [Dracula](https://draculatheme.com/) |
+| `solarized-dark` | [Solarized](https://ethanschoonover.com/solarized/) Dark |
+| `gruvbox-dark` | [Gruvbox](https://github.com/morhetz/gruvbox) Dark |
+| `nord` | [Nord](https://www.nordtheme.com/) |
+| `one-dark` | [One Dark](https://github.com/Binaryify/OneDark-Pro) |
+| `github-dark` | [GitHub Dark](https://github.com/primer/primitives) |
+| `kanagawa` | [Kanagawa](https://github.com/rebelot/kanagawa.nvim) |
+| `rose-pine` | [Rosé Pine](https://rosepinetheme.com/) |
 
 ## What it shows
 
