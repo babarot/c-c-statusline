@@ -1,12 +1,13 @@
 # c-c-statusline
 
+
 [![Test](https://github.com/babarot/c-c-statusline/actions/workflows/test.yml/badge.svg)](https://github.com/babarot/c-c-statusline/actions/workflows/test.yml)
 
 A Deno-powered status line for Claude Code CLI.
 
 Shows model info, context usage, rate limits, git status, session duration, and more — right in your terminal.
 
-![screenshot](ss.png)
+![screenshot](docs/demo-r.png)
 
 ## Install
 
