@@ -73,29 +73,29 @@ curl -fsSL https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/ins
 
 ### bar-style
 
-| Value | Output |
+| Input | Output |
 |---|---|
-| `dot` | `●●●●○○○○○○` |
-| `block` | `▰▰▰▰▱▱▱▱▱▱` |
-| `fill` | `████░░░░░░` |
+| `--bar-style dot` | `●●●●○○○○○○` |
+| `--bar-style block` | `▰▰▰▰▱▱▱▱▱▱` |
+| `--bar-style fill` | `████░░░░░░` |
 
 ### path-style
 
 For `/Users/you/src/github.com/you/project`:
 
-| Value | Output |
+| Input | Output |
 |---|---|
-| `parent` | `you/project` |
-| `full` | `~/src/github.com/you/project` |
-| `short` | `~/s/g/you/project` |
-| `basename` | `project` |
+| `--path-style parent` | `you/project` |
+| `--path-style full` | `~/src/github.com/you/project` |
+| `--path-style short` | `~/s/g/you/project` |
+| `--path-style basename` | `project` |
 
 ### time-style
 
-| Value | Output |
+| Input | Output |
 |---|---|
-| `absolute` | `8:00pm`, `Mar 12, 2:00pm` |
-| `relative` | `1h 30m left`, `2d 5h left` |
+| `--time-style absolute` | `8:00pm`, `Mar 12, 2:00pm` |
+| `--time-style relative` | `1h 30m left`, `2d 5h left` |
 
 ### ctx-format
 
@@ -108,12 +108,12 @@ Use `{used}`, `{total}`, `{pct}`, `{compact}` placeholders.
 | `{pct}` | Usage percentage (e.g. `14`) |
 | `{compact}` | Remaining % until auto-compact (based on 80% usable threshold) |
 
-| Value | Output |
+| Input | Output |
 |---|---|
-| `ctx {used}/{total} ({pct}%)` | `ctx 28k/200k (14%)` |
-| `{pct}% ({used}/{total})` | `14% (28k/200k)` |
-| `{pct}% compact:{compact}%` | `14% compact:83%` |
-| `{used} of {total}` | `28k of 200k` |
+| `--ctx-format 'ctx {used}/{total} ({pct}%)'` | `ctx 28k/200k (14%)` |
+| `--ctx-format '{pct}% ({used}/{total})'` | `14% (28k/200k)` |
+| `--ctx-format '{pct}% compact:{compact}%'` | `14% compact:83%` |
+| `--ctx-format '{used} of {total}'` | `28k of 200k` |
 
 ### Themes
 
@@ -148,17 +148,17 @@ Override any git status symbol. In the config file, use a map; with CLI flags, u
 | `ahead` | `↑` | Ahead of upstream |
 | `behind` | `↓` | Behind upstream |
 
+| Input | Output |
+|---|---|
+| `--git-symbols "stash=-,untracked=?"` | `(main *+ -?)` |
+| `--git-symbols "unstaged=~,staged=+,stash=-,untracked=?,ahead=+,behind=-"` | `(main ~+ -? +1-2)` |
+
 Config file:
 ```yaml
 options:
   git-symbols:
     stash: "-"
     untracked: "?"
-```
-
-CLI flag:
-```bash
---git-symbols "stash=-,untracked=?"
 ```
 
 ## What it shows
