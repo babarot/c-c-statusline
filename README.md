@@ -150,6 +150,35 @@ Override any git status symbol with `--git-symbols "key=val,key=val"`. Only spec
 --git-symbols "unstaged=~,staged=+,stash=-,untracked=?,ahead=+,behind=-"
 ```
 
+## Config file
+
+Options can be set in `~/.claude/statusline.yaml` instead of CLI flags. Generate a config file with defaults:
+
+```bash
+# After install
+~/.claude/c-c-statusline --init-config
+
+# Or during install
+curl -fsSL https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.sh \
+  | bash -s -- --init-config
+```
+
+Example `~/.claude/statusline.yaml`:
+
+```yaml
+options:
+  bar-style: block
+  path-style: short
+  theme: tokyo-night-storm
+  time-style: relative
+  # git-symbols as a map (instead of CLI string format)
+  git-symbols:
+    stash: "-"
+    untracked: "?"
+```
+
+CLI flags override config values. If no config file exists, built-in defaults are used.
+
 ## Uninstall
 
 ```bash

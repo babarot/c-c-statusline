@@ -13,4 +13,3 @@ When modifying `bin/install.ts`:
   ```
   deno run --reload -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.ts
   ```
-- Keep all installers (`bin/install.js`, `bin/install.sh`) in sync — see `installer-flag-sync.md`.
