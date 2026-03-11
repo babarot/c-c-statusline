@@ -137,83 +137,77 @@ async function detectOperation(gitDir: string): Promise<{ operation: string; ste
 }
 
 export async function getGitInfo(cwd: string): Promise<GitInfo> {
-  // Get git dir and HEAD info in one call
-  const revParse = await exec(
-    ["git", "-C", cwd, "rev-parse", "--git-dir", "--short", "HEAD"],
+  // Single command: branch, upstream, all file statuses
+  const status = await exec(
+    ["git", "-C", cwd, "status", "--porcelain=v2", "--branch", "--show-stash"],
   );
-  if (!revParse) return { ...emptyInfo };
+  if (status === null) return { ...emptyInfo };
 
-  const lines = revParse.split("\n");
-  const gitDirRaw = lines[0];
-  const shortSha = lines[1] ?? "";
-
-  // Resolve git dir to absolute path
-  const gitDir = gitDirRaw.startsWith("/")
-    ? gitDirRaw
-    : `${cwd}/${gitDirRaw}`;
-
-  // Detect branch or detached HEAD
   let branch: string | null = null;
   let detached = false;
+  let ahead = 0;
+  let behind = 0;
+  let unstaged = false;
+  let staged = false;
+  let untracked = false;
+  let stash = false;
+  let oid = "";
 
-  const symbolicRef = await exec(
-    ["git", "-C", cwd, "symbolic-ref", "--short", "HEAD"],
-  );
+  for (const line of status.split("\n")) {
+    if (line.startsWith("# branch.head ")) {
+      const head = line.slice("# branch.head ".length);
+      if (head === "(detached)") {
+        detached = true;
+      } else {
+        branch = head;
+      }
+    } else if (line.startsWith("# branch.ab ")) {
+      const m = line.match(/\+(\d+) -(\d+)/);
+      if (m) {
+        ahead = parseInt(m[1], 10);
+        behind = parseInt(m[2], 10);
+      }
+    } else if (line.startsWith("# branch.oid ")) {
+      oid = line.slice("# branch.oid ".length);
+    } else if (line.startsWith("# stash ")) {
+      stash = true;
+    } else if (line.startsWith("1 ") || line.startsWith("2 ")) {
+      // "1 XY ..." ordinary, "2 XY ..." rename/copy
+      const xy = line.split(" ")[1];
+      if (xy) {
+        if (xy[0] !== ".") staged = true;
+        if (xy[1] !== ".") unstaged = true;
+      }
+    } else if (line.startsWith("u ")) {
+      // unmerged entry — both staged and unstaged
+      staged = true;
+      unstaged = true;
+    } else if (line.startsWith("? ")) {
+      untracked = true;
+    }
+  }
 
-  if (symbolicRef) {
-    branch = symbolicRef;
-  } else {
-    // Detached HEAD — try to describe
-    detached = true;
+  // Detached HEAD — describe with tag or short SHA
+  if (detached) {
     const described = await exec(
       ["git", "-C", cwd, "describe", "--tags", "--exact-match", "HEAD"],
     ) ?? await exec(
       ["git", "-C", cwd, "describe", "--contains", "--all", "HEAD"],
     );
+    const shortSha = oid.slice(0, 7);
     branch = described ? `(${described})` : `(${shortSha}...)`;
   }
 
-  // Detect in-progress operation
-  const { operation, step, total } = await detectOperation(gitDir);
-  let operationStr = operation;
-  if (operation && step && total) {
-    operationStr = `${operation} ${step}/${total}`;
-  }
-
-  // Run remaining checks in parallel
-  const [diffUnstaged, diffStaged, stashCheck, untrackedCheck, upstreamCount] =
-    await Promise.all([
-      // Unstaged changes
-      exec(["git", "-C", cwd, "diff", "--no-ext-diff", "--quiet"])
-        .then((r) => r === null), // exit code != 0 means changes exist... but exec returns null on failure
-      // Staged changes
-      exec(["git", "-C", cwd, "diff", "--no-ext-diff", "--cached", "--quiet"])
-        .then((r) => r === null),
-      // Stash
-      exec(["git", "-C", cwd, "rev-parse", "--verify", "--quiet", "refs/stash"]),
-      // Untracked files
-      exec([
-        "git", "-C", cwd, "ls-files", "--others", "--exclude-standard",
-        "--directory", "--no-empty-directory", "--error-unmatch", ":/*",
-      ]),
-      // Upstream ahead/behind
-      exec(["git", "-C", cwd, "rev-list", "--count", "--left-right", "@{upstream}...HEAD"]),
-    ]);
-
-  // diff --quiet returns empty string "" on success (no changes), null on failure (has changes)
-  // But exec returns null both for non-zero exit AND for actual errors
-  // Let's re-check: exec returns stdout.trim() on success, null on !success
-  // git diff --quiet exits 0 (no diff) -> exec returns "" ; exits 1 (has diff) -> exec returns null
-  const unstaged = diffUnstaged; // null means exit code != 0 = has changes = true
-  const staged = diffStaged;
-
-  // Parse upstream
-  let ahead = 0;
-  let behind = 0;
-  if (upstreamCount) {
-    const parts = upstreamCount.split(/\s+/);
-    behind = parseInt(parts[0], 10) || 0;
-    ahead = parseInt(parts[1], 10) || 0;
+  // Detect in-progress operation (needs git dir)
+  const gitDirRaw = await exec(["git", "-C", cwd, "rev-parse", "--git-dir"]);
+  let operationStr = "";
+  if (gitDirRaw) {
+    const gitDir = gitDirRaw.startsWith("/") ? gitDirRaw : `${cwd}/${gitDirRaw}`;
+    const { operation, step, total } = await detectOperation(gitDir);
+    operationStr = operation;
+    if (operation && step && total) {
+      operationStr = `${operation} ${step}/${total}`;
+    }
   }
 
   return {
@@ -221,8 +215,8 @@ export async function getGitInfo(cwd: string): Promise<GitInfo> {
     detached,
     unstaged,
     staged,
-    stash: !!stashCheck,
-    untracked: !!untrackedCheck,
+    stash,
+    untracked,
     ahead,
     behind,
     operation: operationStr,
