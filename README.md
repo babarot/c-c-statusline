@@ -33,7 +33,7 @@ deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/in
 | `--path-style` | `parent`, `full`, `short`, `basename` | `parent` | Directory display style |
 | `--theme` | See [Themes](#themes) | `default` | Color theme |
 | `--time-style` | `absolute`, `relative` | `absolute` | Reset time format |
-| `--ctx-label` | `ctx`, `unicode`, `minimal` | `ctx` | Context window label |
+| `--ctx-format` | Format string | `ctx {used}/{total} ({pct}%)` | Context display format |
 
 **Bar styles:**
 
@@ -59,13 +59,16 @@ deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/in
 | `absolute` | `8:00pm`, `Mar 12, 2:00pm` |
 | `relative` | `1h 30m left`, `2d 5h left` |
 
-**Context window labels:**
+**Context format** (`--ctx-format`):
 
-| Style | Example |
+Use `{used}`, `{total}`, `{pct}` placeholders to build any format.
+
+| Format string | Example |
 |---|---|
-| `ctx` | `ctx 32%` |
-| `unicode` | `◈ 32%` |
-| `minimal` | `32%` |
+| `ctx {used}/{total} ({pct}%)` | `ctx 28k/200k (14%)` |
+| `{pct}% ({used}/{total})` | `14% (28k/200k)` |
+| `{pct}%` | `14%` |
+| `{used} of {total}` | `28k of 200k` |
 
 ### Themes
 
@@ -89,7 +92,7 @@ Built-in color themes using 24-bit True Color (RGB). Each theme defines 8 semant
 
 ## What it shows
 
-**Line 1:** Model name, context usage %, directory, git status, session duration, effort level
+**Line 1:** Model name, context usage (tokens + %), directory, git status, session duration, effort level
 
 **Lines 2+:** Rate limit usage (current 5-hour window, weekly, extra credits when active)
 

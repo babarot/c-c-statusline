@@ -1,5 +1,5 @@
 import { colorForPct, dim, paint } from "./colors.ts";
-import { buildBar, formatPath, formatResetTime } from "./format.ts";
+import { buildBar, formatPath, formatResetTime, formatTokens } from "./format.ts";
 import { getGitInfo } from "./git.ts";
 import { formatSessionDuration } from "./session.ts";
 import { readEffortLevel } from "./effort.ts";
@@ -9,7 +9,7 @@ export interface RenderOptions {
   barStyle: string;
   pathStyle: string;
   timeStyle: "absolute" | "relative";
-  ctxLabel: "ctx" | "unicode" | "minimal";
+  ctxFormat: string;
 }
 
 export async function renderStatusLine(
@@ -22,17 +22,11 @@ export async function renderStatusLine(
   const modelName =
     (data.model as Record<string, string>)?.display_name ?? "Claude";
 
-  // Context
+  // Context — prefer pre-calculated percentage from Claude Code
   const ctxWindow = data.context_window as Record<string, unknown> | undefined;
-  let size = (ctxWindow?.context_window_size as number) ?? 200000;
-  if (size === 0) size = 200000;
-
-  const usage = ctxWindow?.current_usage as Record<string, number> | undefined;
-  const current =
-    (usage?.input_tokens ?? 0) +
-    (usage?.cache_creation_input_tokens ?? 0) +
-    (usage?.cache_read_input_tokens ?? 0);
-  const pctUsed = size > 0 ? Math.round((current * 100) / size) : 0;
+  const pctUsed = (ctxWindow?.used_percentage as number) ?? 0;
+  const ctxSize = (ctxWindow?.context_window_size as number) ?? 200000;
+  const ctxUsed = Math.round((pctUsed * ctxSize) / 100);
 
   // CWD
   const cwd = (data.cwd as string) || Deno.cwd();
@@ -53,10 +47,13 @@ export async function renderStatusLine(
   // ── Line 1 ──────────────────────────────────────────
   let line1 = paint(modelName, "primary");
   line1 += sep;
-  const ctxPrefix = options.ctxLabel === "ctx" ? "ctx "
-    : options.ctxLabel === "unicode" ? "◈ "
-    : "";
-  line1 += `${ctxPrefix}${paint(`${pctUsed}%`, colorForPct(pctUsed))}`;
+
+  const ctxText = options.ctxFormat
+    .replace(/\{used\}/g, formatTokens(ctxUsed))
+    .replace(/\{total\}/g, formatTokens(ctxSize))
+    .replace(/\{pct\}/g, String(pctUsed));
+  line1 += paint(ctxText, colorForPct(pctUsed));
+
   line1 += sep;
   line1 += paint(dirname, "secondary");
 

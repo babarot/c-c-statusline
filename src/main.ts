@@ -5,9 +5,9 @@ import { themeNames } from "./themes.ts";
 import { renderStatusLine } from "./render.ts";
 
 const args = parseArgs(Deno.args, {
-  boolean: ["help", "version"],
-  string: ["bar-style", "path-style", "theme", "time-style", "ctx-label"],
-  default: { "bar-style": "dot", "path-style": "parent", "theme": "default", "time-style": "absolute", "ctx-label": "ctx" },
+  boolean: ["help", "version", "debug"],
+  string: ["bar-style", "path-style", "theme", "time-style", "ctx-format"],
+  default: { "bar-style": "dot", "path-style": "parent", "theme": "default", "time-style": "absolute", "ctx-format": "ctx {used}/{total} ({pct}%)" },
   alias: { h: "help", v: "version" },
 });
 
@@ -25,7 +25,8 @@ Options:
   --path-style <parent|full|short|basename> Path style (default: parent)
   --theme <name>                            Color theme (default: default)
   --time-style <absolute|relative>          Reset time format (default: absolute)
-  --ctx-label <ctx|unicode|minimal>        Context window label (default: ctx)
+  --ctx-format <format>                    Context format with placeholders (default: "ctx {used}/{total} ({pct}%)")
+                                            Placeholders: {used}, {total}, {pct}
   -h, --help                                Show this help
   -v, --version                             Show version
 
@@ -61,6 +62,12 @@ if (!rawInput.trim()) {
 
 setTheme(args.theme);
 
+// Debug: dump raw JSON to file if --debug is set
+if (args.debug) {
+  const home = Deno.env.get("HOME") ?? "/tmp";
+  await Deno.writeTextFile(`${home}/.claude/statusline-debug.json`, rawInput);
+}
+
 let data: Record<string, unknown>;
 try {
   data = JSON.parse(rawInput);
@@ -73,7 +80,7 @@ const output = await renderStatusLine(data, {
   barStyle: args["bar-style"],
   pathStyle: args["path-style"],
   timeStyle: args["time-style"] as "absolute" | "relative",
-  ctxLabel: args["ctx-label"] as "ctx" | "unicode" | "minimal",
+  ctxFormat: args["ctx-format"],
 });
 
 console.log(output);
