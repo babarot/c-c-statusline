@@ -30,13 +30,13 @@ if (typeof opts["git-symbols"] === "string") {
 }
 
 const args = parseArgs(Deno.args, {
-  boolean: ["help", "version", "debug", "init"],
+  boolean: ["help", "version", "debug", "init-config"],
   string: ["bar-style", "path-style", "theme", "time-style", "ctx-format", "git-symbols"],
   default: mergedDefaults,
   alias: { h: "help", v: "version" },
 });
 
-if (args.init) {
+if (args["init-config"]) {
   await generateConfig(DEFAULTS);
   Deno.exit(0);
 }
@@ -59,13 +59,13 @@ Options:
                                             Placeholders: {used}, {total}, {pct}
   --git-symbols <key=val,...>               Override git symbols (default: unstaged=*,staged=+,stash=$,untracked=%,ahead=↑,behind=↓)
                                             Example: --git-symbols "stash=-,untracked=?"
-  --init                                    Generate ~/.claude/statusline.yaml with defaults
+  --init-config                            Generate ~/.claude/statusline.yaml with defaults
   -h, --help                                Show this help
   -v, --version                             Show version
 
 Config file:
   ~/.claude/statusline.yaml — YAML config loaded as defaults.
-  CLI flags override config values. Generate with --init.
+  CLI flags override config values. Generate with --init-config.
 
   Example (~/.claude/statusline.yaml):
     options:

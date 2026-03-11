@@ -182,6 +182,15 @@ do_install() {
 
   update_settings
 
+  if $INIT_CONFIG; then
+    if [[ -f "$CLAUDE_DIR/statusline.yaml" ]]; then
+      warn "Config already exists: ${dim}${CLAUDE_DIR}/statusline.yaml${reset}"
+    else
+      "$BINARY_DEST" --init-config
+      success "Generated ${dim}${CLAUDE_DIR}/statusline.yaml${reset}"
+    fi
+  fi
+
   echo
   log "${green}Done!${reset} Restart Claude Code to see your new status line."
   if [[ ${#EXTRA_ARGS[@]} -gt 0 ]]; then
@@ -194,6 +203,7 @@ do_install() {
 
 EXTRA_ARGS=()
 UNINSTALL=false
+INIT_CONFIG=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -210,6 +220,9 @@ while [[ $# -gt 0 ]]; do
       log "  --path-style <parent|full|short|basename> Path style (default: parent)"
       log "  --theme <name>                            Color theme (default: default)"
       log "  --time-style <absolute|relative>          Time format (default: absolute)"
+      log "  --ctx-format <format>                     Context display format"
+      log "  --git-symbols <key=val,...>               Override git symbols"
+      log "  --init-config                             Generate ~/.claude/statusline.yaml"
       log "  --uninstall                               Remove statusline"
       log "  --help                                    Show this help"
       echo
@@ -219,7 +232,11 @@ while [[ $# -gt 0 ]]; do
       UNINSTALL=true
       shift
       ;;
-    --bar-style|--path-style|--theme|--time-style)
+    --init-config)
+      INIT_CONFIG=true
+      shift
+      ;;
+    --bar-style|--path-style|--theme|--time-style|--ctx-format|--git-symbols)
       EXTRA_ARGS+=("$1" "$2")
       shift 2
       ;;

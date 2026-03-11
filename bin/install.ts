@@ -153,7 +153,7 @@ async function uninstall() {
   console.log();
 }
 
-async function install(extraArgs: string[]) {
+async function install(extraArgs: string[], initConfig: boolean) {
   console.log();
   console.log(`  ${blue("Claude Code Statusline Installer")}`);
   console.log(`  ${dim("────────────────────────────────")}`);
@@ -230,6 +230,22 @@ async function install(extraArgs: string[]) {
     success(`Updated ${dim("settings.json")}`);
   }
 
+  if (initConfig) {
+    const configPath = `${CLAUDE_DIR}/statusline.yaml`;
+    try {
+      await Deno.stat(configPath);
+      warn(`Config already exists: ${dim(configPath)}`);
+    } catch {
+      const proc = new Deno.Command(BINARY_DEST, { args: ["--init-config"], stdout: "inherit", stderr: "inherit" });
+      const { success: ok } = await proc.output();
+      if (ok) {
+        success(`Generated ${dim(configPath)}`);
+      } else {
+        warn("Failed to generate config file");
+      }
+    }
+  }
+
   console.log();
   log(`${green("Done!")} Restart Claude Code to see your new status line.`);
   if (extraArgs.length > 0) {
@@ -240,10 +256,27 @@ async function install(extraArgs: string[]) {
 
 // ── Main ────────────────────────────────────────────────
 
-const installerFlags = new Set(["--uninstall", "--help"]);
-const isUninstall = Deno.args.includes("--uninstall");
-const isHelp = Deno.args.includes("--help");
-const extraArgs = Deno.args.filter((a) => !installerFlags.has(a));
+let isUninstall = false;
+let isHelp = false;
+let initConfig = false;
+const extraArgs: string[] = [];
+const valueFlags = new Set(["--bar-style", "--path-style", "--theme", "--time-style", "--ctx-format", "--git-symbols"]);
+
+for (let i = 0; i < Deno.args.length; i++) {
+  const arg = Deno.args[i];
+  if (arg === "--help" || arg === "-h") {
+    isHelp = true;
+  } else if (arg === "--uninstall") {
+    isUninstall = true;
+  } else if (arg === "--init-config") {
+    initConfig = true;
+  } else if (valueFlags.has(arg) && Deno.args[i + 1]) {
+    extraArgs.push(arg, Deno.args[++i]);
+  } else {
+    fail(`Unknown option: ${arg}`);
+    Deno.exit(1);
+  }
+}
 
 if (isHelp) {
   console.log(`
@@ -253,15 +286,16 @@ if (isHelp) {
     deno run -A install.ts [options]     Install with options
     deno run -A install.ts --uninstall   Uninstall
 
-  ${dim("Installer options:")}
-    --uninstall   Remove statusline
-    --help        Show this help
-
-  All other options are forwarded to the statusline binary.
-  Run ${dim("c-c-statusline --help")} to see available options.
-
-  ${dim("Example:")}
-    deno run -A install.ts --theme tokyo-night --bar-style block
+  ${dim("Options:")}
+    --bar-style <dot|block|fill>              Bar style (default: dot)
+    --path-style <parent|full|short|basename> Path style (default: parent)
+    --theme <name>                            Color theme (default: default)
+    --time-style <absolute|relative>          Time format (default: absolute)
+    --ctx-format <format>                     Context display format
+    --git-symbols <key=val,...>               Override git symbols
+    --init-config                             Generate ~/.claude/statusline.yaml
+    --uninstall                               Remove statusline
+    --help                                    Show this help
 `);
   Deno.exit(0);
 }
@@ -269,5 +303,5 @@ if (isHelp) {
 if (isUninstall) {
   await uninstall();
 } else {
-  await install(extraArgs);
+  await install(extraArgs, initConfig);
 }

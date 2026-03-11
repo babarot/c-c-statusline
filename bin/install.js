@@ -147,7 +147,7 @@ async function uninstall() {
   console.log();
 }
 
-async function install(extraArgs) {
+async function install(extraArgs, initConfig) {
   console.log();
   console.log(`  ${blue}Claude Code Statusline Installer${reset}`);
   console.log(`  ${dim}────────────────────────────────${reset}`);
@@ -219,6 +219,21 @@ async function install(extraArgs) {
     success(`Updated ${dim}settings.json${reset}`);
   }
 
+  if (initConfig) {
+    const configPath = path.join(CLAUDE_DIR, "statusline.yaml");
+    if (fs.existsSync(configPath)) {
+      warn(`Config already exists: ${dim}${configPath}${reset}`);
+    } else {
+      const { execFileSync } = require("child_process");
+      try {
+        execFileSync(BINARY_DEST, ["--init-config"], { stdio: "inherit" });
+        success(`Generated ${dim}${configPath}${reset}`);
+      } catch {
+        warn("Failed to generate config file");
+      }
+    }
+  }
+
   console.log();
   log(`${green}Done!${reset} Restart Claude Code to see your new status line.`);
   if (extraArgs.length > 0) {
@@ -242,6 +257,11 @@ if (argv.includes("--help") || argv.includes("-h")) {
   ${dim}Options:${reset}
     --bar-style <dot|block|fill>              Bar style (default: dot)
     --path-style <parent|full|short|basename> Path style (default: parent)
+    --theme <name>                            Color theme (default: default)
+    --time-style <absolute|relative>          Time format (default: absolute)
+    --ctx-format <format>                     Context display format
+    --git-symbols <key=val,...>               Override git symbols
+    --init-config                             Generate ~/.claude/statusline.yaml
     --uninstall                               Remove statusline
     --help                                    Show this help
 `);
@@ -252,12 +272,16 @@ if (argv.includes("--uninstall")) {
   uninstall();
 } else {
   const extraArgs = [];
+  const initConfig = argv.includes("--init-config");
+  const valueFlags = ["--bar-style", "--path-style", "--theme", "--time-style", "--ctx-format", "--git-symbols"];
   for (let i = 0; i < argv.length; i++) {
-    if (argv[i] === "--bar-style" && argv[i + 1]) {
-      extraArgs.push("--bar-style", argv[++i]);
-    } else if (argv[i] === "--path-style" && argv[i + 1]) {
-      extraArgs.push("--path-style", argv[++i]);
+    if (argv[i] === "--init-config") continue;
+    if (valueFlags.includes(argv[i]) && argv[i + 1]) {
+      extraArgs.push(argv[i], argv[++i]);
+    } else {
+      fail(`Unknown option: ${argv[i]}`);
+      process.exit(1);
     }
   }
-  install(extraArgs);
+  install(extraArgs, initConfig);
 }
