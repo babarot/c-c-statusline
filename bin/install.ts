@@ -260,7 +260,7 @@ let isUninstall = false;
 let isHelp = false;
 let initConfig = false;
 const extraArgs: string[] = [];
-const valueFlags = new Set(["--bar-style", "--path-style", "--theme", "--time-style", "--ctx-format", "--git-symbols"]);
+const valueFlags = new Set(["--bar-style", "--path-style", "--theme", "--time-style", "--ctx-format", "--vim-mode", "--git-symbols"]);
 
 for (let i = 0; i < Deno.args.length; i++) {
   const arg = Deno.args[i];
@@ -292,6 +292,7 @@ if (isHelp) {
     --theme <name>                            Color theme (default: default)
     --time-style <absolute|relative>          Time format (default: absolute)
     --ctx-format <format>                     Context display format
+    --vim-mode <auto|always|off>              Vim mode display (default: auto)
     --git-symbols <key=val,...>               Override git symbols
     --init-config                             Generate ~/.claude/statusline.yaml
     --uninstall                               Remove statusline

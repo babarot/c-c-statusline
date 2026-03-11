@@ -260,6 +260,7 @@ if (argv.includes("--help") || argv.includes("-h")) {
     --theme <name>                            Color theme (default: default)
     --time-style <absolute|relative>          Time format (default: absolute)
     --ctx-format <format>                     Context display format
+    --vim-mode <auto|always|off>              Vim mode display (default: auto)
     --git-symbols <key=val,...>               Override git symbols
     --init-config                             Generate ~/.claude/statusline.yaml
     --uninstall                               Remove statusline
@@ -273,7 +274,7 @@ if (argv.includes("--uninstall")) {
 } else {
   const extraArgs = [];
   const initConfig = argv.includes("--init-config");
-  const valueFlags = ["--bar-style", "--path-style", "--theme", "--time-style", "--ctx-format", "--git-symbols"];
+  const valueFlags = ["--bar-style", "--path-style", "--theme", "--time-style", "--ctx-format", "--vim-mode", "--git-symbols"];
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === "--init-config") continue;
     if (valueFlags.includes(argv[i]) && argv[i + 1]) {

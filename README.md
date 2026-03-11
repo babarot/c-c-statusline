@@ -96,6 +96,7 @@ This writes the flags directly into the command:
 | `theme` | See [Themes](#themes) | `default` | Color theme |
 | `time-style` | `absolute`, `relative` | `absolute` | Reset time format |
 | `ctx-format` | Format string | `ctx {used}/{total} ({pct}%)` | Context display format |
+| `vim-mode` | `auto`, `always`, `off` | `auto` | Vim mode indicator display |
 | `git-symbols` | Map or `key=val,...` | See [below](#git-symbols) | Override git status symbols |
 
 ### bar-style
@@ -141,6 +142,24 @@ Use `{used}`, `{total}`, `{pct}`, `{compact}` placeholders.
 | `--ctx-format '{pct}% ({used}/{total})'` | `14% (28k/200k)` |
 | `--ctx-format '{pct}% compact:{compact}%'` | `14% compact:83%` |
 | `--ctx-format '{used} of {total}'` | `28k of 200k` |
+
+### vim-mode
+
+Shows the current Vim mode when Claude Code's Vim keybinding is enabled. The indicator is appended to the end of line 1.
+
+| Value | Behavior |
+|---|---|
+| `auto` | Show only in `NORMAL` mode (hides in `INSERT` to reduce noise) |
+| `always` | Show in all modes (`NORMAL`, `INSERT`, etc.) |
+| `off` | Never show |
+
+Mode colors: `NORMAL` uses the theme's primary color, `INSERT` uses success (green).
+
+```yaml
+# ~/.claude/statusline.yaml
+options:
+  vim-mode: auto
+```
 
 ### Themes
 

@@ -10,7 +10,7 @@ const { defaults: mergedDefaults, configGitSymbols } = await mergeDefaults();
 
 const args = parseArgs(Deno.args, {
   boolean: ["help", "version", "debug", "init-config"],
-  string: ["bar-style", "path-style", "theme", "time-style", "ctx-format", "git-symbols"],
+  string: ["bar-style", "path-style", "theme", "time-style", "ctx-format", "vim-mode", "git-symbols"],
   default: mergedDefaults,
   alias: { h: "help", v: "version" },
 });
@@ -36,6 +36,8 @@ Options:
   --time-style <absolute|relative>           Reset time format (default: absolute)
   --ctx-format <format>                      Context format with placeholders (default: "ctx {used}/{total} ({pct}%)")
                                              Placeholders: {used}, {total}, {pct}, {compact}
+  --vim-mode <auto|always|off>               Vim mode display (default: auto)
+                                             auto: NORMAL only, always: both, off: hidden
   --git-symbols <key=val,...>                Override git symbols (default: unstaged=*,staged=+,stash=$,untracked=%,ahead=↑,behind=↓)
                                              Example: --git-symbols "stash=-,untracked=?"
   --init-config                              Generate ~/.claude/statusline.yaml with defaults
@@ -110,6 +112,7 @@ const output = await renderStatusLine(data, {
   pathStyle: args["path-style"] as string,
   timeStyle: args["time-style"] as "absolute" | "relative",
   ctxFormat: args["ctx-format"] as string,
+  vimMode: args["vim-mode"] as "auto" | "always" | "off",
   gitSymbols,
 });
 

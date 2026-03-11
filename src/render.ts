@@ -12,6 +12,7 @@ export interface RenderOptions {
   timeStyle: "absolute" | "relative";
   ctxFormat: string;
   gitSymbols: GitSymbols;
+  vimMode: "auto" | "always" | "off";
 }
 
 /** Advance a past resets_at by windowMs increments until it's in the future. */
@@ -171,6 +172,18 @@ export async function renderStatusLine(
     default:
       line1 += dim(`◑ ${effort}`);
       break;
+  }
+
+  // Vim mode
+  const vimMode = (data.vim as Record<string, string>)?.mode;
+  if (vimMode && options.vimMode !== "off") {
+    const show = options.vimMode === "always" ||
+      (options.vimMode === "auto" && vimMode === "NORMAL");
+    if (show) {
+      line1 += sep;
+      const vimColor = vimMode === "INSERT" ? "success" : "primary";
+      line1 += paint(vimMode, vimColor);
+    }
   }
 
   const rateLines = usageData ? renderRateLines(usageData, options) : "";
