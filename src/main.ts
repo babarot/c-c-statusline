@@ -2,12 +2,12 @@ import { parseArgs } from "@std/cli/parse-args";
 import { VERSION } from "./version.ts";
 import { setTheme } from "./colors.ts";
 import { themeNames } from "./themes.ts";
-import { renderStatusLine } from "./render.ts";
+import { renderStatusLine, defaultGitSymbols, parseGitSymbols } from "./render.ts";
 
 const args = parseArgs(Deno.args, {
   boolean: ["help", "version", "debug"],
-  string: ["bar-style", "path-style", "theme", "time-style", "ctx-format"],
-  default: { "bar-style": "dot", "path-style": "parent", "theme": "default", "time-style": "absolute", "ctx-format": "ctx {used}/{total} ({pct}%)" },
+  string: ["bar-style", "path-style", "theme", "time-style", "ctx-format", "git-symbols"],
+  default: { "bar-style": "dot", "path-style": "parent", "theme": "default", "time-style": "absolute", "ctx-format": "ctx {used}/{total} ({pct}%)", "git-symbols": "" },
   alias: { h: "help", v: "version" },
 });
 
@@ -27,6 +27,8 @@ Options:
   --time-style <absolute|relative>          Reset time format (default: absolute)
   --ctx-format <format>                    Context format with placeholders (default: "ctx {used}/{total} ({pct}%)")
                                             Placeholders: {used}, {total}, {pct}
+  --git-symbols <key=val,...>               Override git symbols (default: unstaged=*,staged=+,stash=$,untracked=%,ahead=↑,behind=↓)
+                                            Example: --git-symbols "stash=-,untracked=?"
   -h, --help                                Show this help
   -v, --version                             Show version
 
@@ -76,11 +78,14 @@ try {
   Deno.exit(0);
 }
 
+const gitSymbols = { ...defaultGitSymbols, ...parseGitSymbols(args["git-symbols"]) };
+
 const output = await renderStatusLine(data, {
   barStyle: args["bar-style"],
   pathStyle: args["path-style"],
   timeStyle: args["time-style"] as "absolute" | "relative",
   ctxFormat: args["ctx-format"],
+  gitSymbols,
 });
 
 console.log(output);

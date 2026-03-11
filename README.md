@@ -36,6 +36,7 @@ deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/in
 | `--theme` | See [Themes](#themes) | `default` | Color theme |
 | `--time-style` | `absolute`, `relative` | `absolute` | Reset time format |
 | `--ctx-format` | Format string | `ctx {used}/{total} ({pct}%)` | Context display format |
+| `--git-symbols` | `key=val,...` | See [Git symbols](#git-symbols) | Override git status symbols |
 
 **Bar styles:**
 
@@ -122,6 +123,29 @@ Inspired by [git-prompt.sh](https://github.com/git/git/blob/master/contrib/compl
 | `\|AM` | `git am` in progress |
 
 Detached HEAD is shown in red with a tag or short SHA.
+
+### Git symbols
+
+Override any git status symbol with `--git-symbols "key=val,key=val"`. Only specified keys are overridden; the rest keep their defaults.
+
+| Key | Default | Description |
+|---|---|---|
+| `unstaged` | `*` | Unstaged changes |
+| `staged` | `+` | Staged changes |
+| `stash` | `$` | Stash entries exist |
+| `untracked` | `%` | Untracked files |
+| `ahead` | `↑` | Ahead of upstream |
+| `behind` | `↓` | Behind upstream |
+
+**Examples:**
+
+```bash
+# Use '-' for stash and '?' for untracked
+--git-symbols "stash=-,untracked=?"
+
+# Minimal style
+--git-symbols "unstaged=~,staged=+,stash=-,untracked=?,ahead=+,behind=-"
+```
 
 ## Uninstall
 

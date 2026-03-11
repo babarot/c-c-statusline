@@ -5,11 +5,41 @@ import { formatSessionDuration } from "./session.ts";
 import { readEffortLevel } from "./effort.ts";
 import { fetchUsageData } from "./usage.ts";
 
+export interface GitSymbols {
+  unstaged: string;
+  staged: string;
+  stash: string;
+  untracked: string;
+  ahead: string;
+  behind: string;
+}
+
+export const defaultGitSymbols: GitSymbols = {
+  unstaged: "*",
+  staged: "+",
+  stash: "$",
+  untracked: "%",
+  ahead: "↑",
+  behind: "↓",
+};
+
+export function parseGitSymbols(input: string): Partial<GitSymbols> {
+  const result: Partial<GitSymbols> = {};
+  for (const pair of input.split(",")) {
+    const [key, val] = pair.split("=", 2);
+    if (key && val !== undefined && key in defaultGitSymbols) {
+      result[key as keyof GitSymbols] = val;
+    }
+  }
+  return result;
+}
+
 export interface RenderOptions {
   barStyle: string;
   pathStyle: string;
   timeStyle: "absolute" | "relative";
   ctxFormat: string;
+  gitSymbols: GitSymbols;
 }
 
 export async function renderStatusLine(
@@ -62,20 +92,21 @@ export async function renderStatusLine(
     const branchColor = gitInfo.detached ? "danger" : "success";
     let gitPart = paint(gitInfo.branch, branchColor);
 
-    // State flags: *=unstaged, +=staged, $=stash, %=untracked
+    // State flags
+    const gs = options.gitSymbols;
     const flags: string[] = [];
-    if (gitInfo.unstaged) flags.push(paint("*", "danger"));
-    if (gitInfo.staged) flags.push(paint("+", "success"));
-    if (gitInfo.stash) flags.push(paint("$", "primary"));
-    if (gitInfo.untracked) flags.push(paint("%", "danger"));
+    if (gitInfo.unstaged) flags.push(paint(gs.unstaged, "danger"));
+    if (gitInfo.staged) flags.push(paint(gs.staged, "success"));
+    if (gitInfo.stash) flags.push(paint(gs.stash, "primary"));
+    if (gitInfo.untracked) flags.push(paint(gs.untracked, "danger"));
     if (flags.length > 0) {
       gitPart += ` ${flags.join("")}`;
     }
 
     // Upstream: ahead/behind
     const upstream: string[] = [];
-    if (gitInfo.ahead > 0) upstream.push(paint(`↑${gitInfo.ahead}`, "success"));
-    if (gitInfo.behind > 0) upstream.push(paint(`↓${gitInfo.behind}`, "danger"));
+    if (gitInfo.ahead > 0) upstream.push(paint(`${gs.ahead}${gitInfo.ahead}`, "success"));
+    if (gitInfo.behind > 0) upstream.push(paint(`${gs.behind}${gitInfo.behind}`, "danger"));
     if (gitInfo.ahead === 0 && gitInfo.behind === 0 && gitInfo.branch && !gitInfo.detached) {
       // only show = if upstream exists (we got a count back)
       // We can't distinguish "no upstream" from "equal" here since both give ahead=0 behind=0
