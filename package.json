@@ -1,6 +1,6 @@
 {
   "name": "@babarot/c-c-statusline",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "A Deno-powered status line for Claude Code CLI showing model, context usage, rate limits, and more",
   "bin": {
     "c-c-statusline": "./bin/install.js"
