@@ -12,7 +12,7 @@ Downloads a precompiled binary from GitHub Releases. No runtime dependencies nee
 
 ```bash
 # Deno
-deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/install.ts
+deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.ts
 
 # npx
 npx @babarot/c-c-statusline
@@ -23,7 +23,7 @@ npx @babarot/c-c-statusline
 Pass options during install to customize the statusline:
 
 ```bash
-deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/install.ts \
+deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.ts \
   --bar-style block --path-style short
 ```
 
@@ -84,7 +84,7 @@ Detached HEAD is shown in red with a tag or short SHA.
 
 ```bash
 # Deno
-deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/install.ts --uninstall
+deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.ts --uninstall
 
 # npx
 npx @babarot/c-c-statusline --uninstall
