@@ -32,6 +32,8 @@ deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/in
 | `--bar-style` | `dot`, `block`, `fill` | `dot` | Progress bar style |
 | `--path-style` | `parent`, `full`, `short`, `basename` | `parent` | Directory display style |
 | `--theme` | See [Themes](#themes) | `default` | Color theme |
+| `--time-style` | `absolute`, `relative` | `absolute` | Reset time format |
+| `--ctx-label` | `ctx`, `unicode`, `minimal` | `ctx` | Context window label |
 
 **Bar styles:**
 
@@ -49,6 +51,21 @@ deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/in
 | `full` | `~/src/github.com/you/project` |
 | `short` | `~/s/g/you/project` |
 | `basename` | `project` |
+
+**Time styles:**
+
+| Style | Example |
+|---|---|
+| `absolute` | `8:00pm`, `Mar 12, 2:00pm` |
+| `relative` | `1h 30m left`, `2d 5h left` |
+
+**Context window labels:**
+
+| Style | Example |
+|---|---|
+| `ctx` | `ctx 32%` |
+| `unicode` | `◈ 32%` |
+| `minimal` | `32%` |
 
 ### Themes
 

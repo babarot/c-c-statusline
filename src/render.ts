@@ -8,6 +8,8 @@ import { fetchUsageData } from "./usage.ts";
 export interface RenderOptions {
   barStyle: string;
   pathStyle: string;
+  timeStyle: "absolute" | "relative";
+  ctxLabel: "ctx" | "unicode" | "minimal";
 }
 
 export async function renderStatusLine(
@@ -51,7 +53,10 @@ export async function renderStatusLine(
   // ── Line 1 ──────────────────────────────────────────
   let line1 = paint(modelName, "primary");
   line1 += sep;
-  line1 += `✍️ ${paint(`${pctUsed}%`, colorForPct(pctUsed))}`;
+  const ctxPrefix = options.ctxLabel === "ctx" ? "ctx "
+    : options.ctxLabel === "unicode" ? "◈ "
+    : "";
+  line1 += `${ctxPrefix}${paint(`${pctUsed}%`, colorForPct(pctUsed))}`;
   line1 += sep;
   line1 += paint(dirname, "secondary");
 
@@ -116,14 +121,14 @@ export async function renderStatusLine(
 
   if (usageData) {
     const fiveHourPct = Math.round(usageData.five_hour?.utilization ?? 0);
-    const fiveHourReset = formatResetTime(usageData.five_hour?.resets_at, "time");
+    const fiveHourReset = formatResetTime(usageData.five_hour?.resets_at, "time", options.timeStyle);
     const fiveHourBar = buildBar(fiveHourPct, barWidth, options.barStyle);
     const fiveHourPctFmt = String(fiveHourPct).padStart(3);
 
     rateLines += `${paint("current", "muted")} ${fiveHourBar} ${paint(`${fiveHourPctFmt}%`, colorForPct(fiveHourPct))} ${dim("⟳")} ${paint(fiveHourReset, "muted")}`;
 
     const sevenDayPct = Math.round(usageData.seven_day?.utilization ?? 0);
-    const sevenDayReset = formatResetTime(usageData.seven_day?.resets_at, "datetime");
+    const sevenDayReset = formatResetTime(usageData.seven_day?.resets_at, "datetime", options.timeStyle);
     const sevenDayBar = buildBar(sevenDayPct, barWidth, options.barStyle);
     const sevenDayPctFmt = String(sevenDayPct).padStart(3);
 
@@ -137,7 +142,7 @@ export async function renderStatusLine(
 
       const now = new Date();
       const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-      const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
       const extraReset = `${months[nextMonth.getMonth()]} ${nextMonth.getDate()}`;
 
       rateLines += `\n${paint("extra", "muted")}   ${extraBar} ${paint(`$${extraUsed}`, colorForPct(extraPct))}${dim("/")}${paint(`$${extraLimit}`, "muted")}`;

@@ -6,8 +6,8 @@ import { renderStatusLine } from "./render.ts";
 
 const args = parseArgs(Deno.args, {
   boolean: ["help", "version"],
-  string: ["bar-style", "path-style", "theme"],
-  default: { "bar-style": "dot", "path-style": "parent", "theme": "default" },
+  string: ["bar-style", "path-style", "theme", "time-style", "ctx-label"],
+  default: { "bar-style": "dot", "path-style": "parent", "theme": "default", "time-style": "absolute", "ctx-label": "ctx" },
   alias: { h: "help", v: "version" },
 });
 
@@ -24,6 +24,8 @@ Options:
   --bar-style <dot|block|fill>              Bar style (default: dot)
   --path-style <parent|full|short|basename> Path style (default: parent)
   --theme <name>                            Color theme (default: default)
+  --time-style <absolute|relative>          Reset time format (default: absolute)
+  --ctx-label <ctx|unicode|minimal>        Context window label (default: ctx)
   -h, --help                                Show this help
   -v, --version                             Show version
 
@@ -70,6 +72,8 @@ try {
 const output = await renderStatusLine(data, {
   barStyle: args["bar-style"],
   pathStyle: args["path-style"],
+  timeStyle: args["time-style"] as "absolute" | "relative",
+  ctxLabel: args["ctx-label"] as "ctx" | "unicode" | "minimal",
 });
 
 console.log(output);

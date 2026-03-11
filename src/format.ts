@@ -45,14 +45,19 @@ export function formatPath(fullPath: string, style: string): string {
 export function formatResetTime(
   isoStr: string | undefined | null,
   style: "time" | "datetime" | "date" = "date",
+  timeStyle: "absolute" | "relative" = "absolute",
 ): string {
   if (!isoStr || isoStr === "null") return "";
   const d = new Date(isoStr);
   if (isNaN(d.getTime())) return "";
 
+  if (timeStyle === "relative") {
+    return formatRelativeTime(d);
+  }
+
   const months = [
-    "jan", "feb", "mar", "apr", "may", "jun",
-    "jul", "aug", "sep", "oct", "nov", "dec",
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
   ];
 
   switch (style) {
@@ -75,6 +80,22 @@ export function formatResetTime(
     default:
       return `${months[d.getMonth()]} ${d.getDate()}`;
   }
+}
+
+function formatRelativeTime(target: Date): string {
+  const diffMs = target.getTime() - Date.now();
+  if (diffMs <= 0) return "now";
+
+  const totalMin = Math.floor(diffMs / 60_000);
+  const days = Math.floor(totalMin / 1440);
+  const hours = Math.floor((totalMin % 1440) / 60);
+  const mins = totalMin % 60;
+
+  const parts: string[] = [];
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0) parts.push(`${hours}h`);
+  if (mins > 0 && days === 0) parts.push(`${mins}m`);
+  return parts.length > 0 ? `${parts.join(" ")} left` : "now";
 }
 
 export function buildBar(pct: number, width: number, style: string): string {
