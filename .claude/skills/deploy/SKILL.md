@@ -1,6 +1,6 @@
 ---
 description: Compile and install the binary to ~/.claude/
-allowed-tools: Bash(deno task compile:*), Bash(rm:*), Bash(cp:*)
+allowed-tools: Bash(deno task compile:*), Bash(install:*), Bash(~/.claude/c-c-statusline --version:*)
 ---
 
 # Deploy: Compile & Install
@@ -13,14 +13,12 @@ Run the following steps in order.
 deno task compile
 ```
 
-## 2. Remove existing binary, then copy
+## 2. Install
 
-Using `/bin/cp` adds the `com.apple.provenance` xattr, causing macOS Gatekeeper to SIGKILL adhoc-signed binaries.
-Always `rm` first, then `cp`.
+`install` atomically replaces the destination file, avoiding the `com.apple.provenance` xattr issue that `/bin/cp` causes (macOS Gatekeeper SIGKILL on adhoc-signed binaries).
 
 ```
-rm ~/.claude/c-c-statusline
-cp c-c-statusline ~/.claude/c-c-statusline
+install -v c-c-statusline ~/.claude/c-c-statusline
 ```
 
 ## 3. Verify
