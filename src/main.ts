@@ -30,17 +30,17 @@ Usage:
     echo '{"model":...}' | c-c-statusline [options]
 
 Options:
-  --bar-style <dot|block|fill>              Bar style (default: dot)
-  --path-style <parent|full|short|basename> Path style (default: parent)
-  --theme <name>                            Color theme (default: default)
-  --time-style <absolute|relative>          Reset time format (default: absolute)
-  --ctx-format <format>                    Context format with placeholders (default: "ctx {used}/{total} ({pct}%)")
-                                            Placeholders: {used}, {total}, {pct}, {compact}
-  --git-symbols <key=val,...>               Override git symbols (default: unstaged=*,staged=+,stash=$,untracked=%,ahead=↑,behind=↓)
-                                            Example: --git-symbols "stash=-,untracked=?"
-  --init-config                            Generate ~/.claude/statusline.yaml with defaults
-  -h, --help                                Show this help
-  -v, --version                             Show version
+  --bar-style <dot|block|fill>               Bar style (default: dot)
+  --path-style <parent|full|short|basename>  Path style (default: parent)
+  --theme <name>                             Color theme (default: default)
+  --time-style <absolute|relative>           Reset time format (default: absolute)
+  --ctx-format <format>                      Context format with placeholders (default: "ctx {used}/{total} ({pct}%)")
+                                             Placeholders: {used}, {total}, {pct}, {compact}
+  --git-symbols <key=val,...>                Override git symbols (default: unstaged=*,staged=+,stash=$,untracked=%,ahead=↑,behind=↓)
+                                             Example: --git-symbols "stash=-,untracked=?"
+  --init-config                              Generate ~/.claude/statusline.yaml with defaults
+  -h, --help                                 Show this help
+  -v, --version                              Show version
 
 Config file:
   ~/.claude/statusline.yaml — YAML config loaded as defaults.

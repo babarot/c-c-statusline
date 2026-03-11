@@ -1,5 +1,7 @@
 # c-c-statusline
 
+[![Test](https://github.com/babarot/c-c-statusline/actions/workflows/test.yml/badge.svg)](https://github.com/babarot/c-c-statusline/actions/workflows/test.yml)
+
 A Deno-powered status line for Claude Code CLI.
 
 Shows model info, context usage, rate limits, git status, session duration, and more — right in your terminal.
@@ -39,6 +41,7 @@ curl -fsSL https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/ins
 Then edit to your liking:
 
 ```yaml
+# ~/.claude/statusline.yaml
 options:
   bar-style: block
   path-style: short
@@ -50,14 +53,37 @@ options:
     untracked: "?"
 ```
 
+`settings.json` stays clean — no flags in the command:
+
+```jsonc
+// ~/.claude/settings.json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "\"$HOME/.claude/c-c-statusline\""
+  }
+}
+```
+
 ### CLI flags
 
-CLI flags override config file values. Useful for quick testing or one-off overrides.
+CLI flags override config file values. Pass flags during install to bake them into `settings.json`:
 
 ```bash
-# Pass flags during install to set defaults in settings.json
 curl -fsSL https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.sh \
   | bash -s -- --bar-style block --path-style short --theme tokyo-night
+```
+
+This writes the flags directly into the command:
+
+```jsonc
+// ~/.claude/settings.json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "\"$HOME/.claude/c-c-statusline\" --bar-style block --path-style short --theme tokyo-night"
+  }
+}
 ```
 
 ## Options
