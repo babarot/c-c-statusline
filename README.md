@@ -51,9 +51,34 @@ deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/instal
 
 ## What it shows
 
-**Line 1:** Model name, context usage %, directory, git branch, session duration, effort level
+**Line 1:** Model name, context usage %, directory, git status, session duration, effort level
 
 **Lines 2+:** Rate limit usage (current 5-hour window, weekly, extra credits when active)
+
+### Git status
+
+Inspired by [git-prompt.sh](https://github.com/git/git/blob/master/contrib/completion/git-prompt.sh). Displays branch name and rich status indicators:
+
+```
+(main *+$% ↑1↓2|REBASE 3/5)
+```
+
+| Symbol | Meaning |
+|---|---|
+| `*` | Unstaged changes |
+| `+` | Staged changes |
+| `$` | Stash entries exist |
+| `%` | Untracked files |
+| `↑N` | N commits ahead of upstream |
+| `↓N` | N commits behind upstream |
+| `\|REBASE` | Rebase in progress (with step/total) |
+| `\|MERGING` | Merge in progress |
+| `\|CHERRY-PICKING` | Cherry-pick in progress |
+| `\|REVERTING` | Revert in progress |
+| `\|BISECTING` | Bisect in progress |
+| `\|AM` | `git am` in progress |
+
+Detached HEAD is shown in red with a tag or short SHA.
 
 ## Uninstall
 

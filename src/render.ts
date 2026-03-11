@@ -56,10 +56,40 @@ export async function renderStatusLine(
   line1 += paint(dirname, "cyan");
 
   if (gitInfo.branch) {
-    const branch = gitInfo.dirty
-      ? `(${paint(gitInfo.branch, "green")}${paint("*", "red")}${paint(")", "green")}`
-      : paint(`(${gitInfo.branch})`, "green");
-    line1 += ` ${branch}`;
+    // Branch name: green if attached, red if detached
+    const branchColor = gitInfo.detached ? "red" : "green";
+    let gitPart = paint(gitInfo.branch, branchColor);
+
+    // State flags: *=unstaged, +=staged, $=stash, %=untracked
+    const flags: string[] = [];
+    if (gitInfo.unstaged) flags.push(paint("*", "red"));
+    if (gitInfo.staged) flags.push(paint("+", "green"));
+    if (gitInfo.stash) flags.push(paint("$", "blue"));
+    if (gitInfo.untracked) flags.push(paint("%", "red"));
+    if (flags.length > 0) {
+      gitPart += ` ${flags.join("")}`;
+    }
+
+    // Upstream: ahead/behind
+    const upstream: string[] = [];
+    if (gitInfo.ahead > 0) upstream.push(paint(`↑${gitInfo.ahead}`, "green"));
+    if (gitInfo.behind > 0) upstream.push(paint(`↓${gitInfo.behind}`, "red"));
+    if (gitInfo.ahead === 0 && gitInfo.behind === 0 && gitInfo.branch && !gitInfo.detached) {
+      // only show = if upstream exists (we got a count back)
+      // We can't distinguish "no upstream" from "equal" here since both give ahead=0 behind=0
+      // but if upstream didn't exist, rev-list would fail and return nulls → 0,0
+      // Skip the = indicator to avoid noise
+    }
+    if (upstream.length > 0) {
+      gitPart += ` ${upstream.join(" ")}`;
+    }
+
+    // Operation: |REBASE, |MERGING, etc.
+    if (gitInfo.operation) {
+      gitPart += paint(`|${gitInfo.operation}`, "magenta");
+    }
+
+    line1 += ` ${paint("(", branchColor)}${gitPart}${paint(")", branchColor)}`;
   }
 
   if (sessionDuration) {
