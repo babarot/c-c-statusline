@@ -1,18 +1,7 @@
 {
-  "name": "@babarot/c-c-statusline",
-  "version": "0.2.0",
-  "exports": "./src/main.ts",
   "imports": {
     "@std/cli/parse-args": "jsr:@std/cli@^1/parse-args",
     "@std/fmt/colors": "jsr:@std/fmt@^1/colors"
-  },
-  "publish": {
-    "include": [
-      "src/**/*.ts",
-      "deno.json",
-      "README.md",
-      "LICENSE"
-    ]
   },
   "tasks": {
     "dev": "echo '{\"model\":{\"display_name\":\"Opus\"},\"context_window\":{\"context_window_size\":200000,\"current_usage\":{\"input_tokens\":80000}},\"cwd\":\"/Users/babarot/src/github.com/babarot/dotfiles\"}' | deno run --allow-run --allow-read --allow-env --allow-net src/main.ts --bar-style block --path-style short",

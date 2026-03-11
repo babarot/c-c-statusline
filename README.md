@@ -18,25 +18,6 @@ deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/instal
 npx @babarot/c-c-statusline
 ```
 
-### deno install
-
-For Deno users who prefer source-based installation:
-
-```bash
-deno install -g -A jsr:@babarot/c-c-statusline
-```
-
-Then configure `~/.claude/settings.json` manually:
-
-```json
-{
-  "statusLine": {
-    "type": "command",
-    "command": "c-c-statusline"
-  }
-}
-```
-
 ### Options
 
 Pass options during install to customize the statusline:
