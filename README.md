@@ -1,6 +1,6 @@
 # c-c-statusline
 
-A Deno-powered status line for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI.
+A Deno-powered status line for Claude Code CLI.
 
 Shows model info, context usage, rate limits, git status, session duration, and more — right in your terminal.
 
@@ -13,11 +13,14 @@ Shows model info, context usage, rate limits, git status, session duration, and 
 Downloads a precompiled binary from GitHub Releases. No runtime dependencies needed.
 
 ```bash
-# Deno
-deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.ts
+# curl
+curl -fsSL https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.sh | bash
 
 # npx
 npx @babarot/c-c-statusline
+
+# Deno
+deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.ts
 ```
 
 ### Options
@@ -25,8 +28,8 @@ npx @babarot/c-c-statusline
 Pass options during install to customize the statusline:
 
 ```bash
-deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.ts \
-  --bar-style block --path-style short --theme tokyo-night
+curl -fsSL https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.sh \
+  | bash -s -- --bar-style block --path-style short --theme tokyo-night
 ```
 
 | Option | Values | Default | Description |
@@ -150,11 +153,14 @@ Override any git status symbol with `--git-symbols "key=val,key=val"`. Only spec
 ## Uninstall
 
 ```bash
-# Deno
-deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.ts --uninstall
+# curl
+curl -fsSL https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.sh | bash -s -- --uninstall
 
 # npx
 npx @babarot/c-c-statusline --uninstall
+
+# Deno
+deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.ts --uninstall
 ```
 
 ## License
