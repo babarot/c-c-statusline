@@ -5,6 +5,7 @@
     "@std/yaml": "jsr:@std/yaml@^1"
   },
   "tasks": {
+    "test": "deno test src/ --allow-env --allow-read --allow-write --allow-run=git",
     "dev": "echo '{\"model\":{\"display_name\":\"Opus\"},\"context_window\":{\"context_window_size\":200000,\"current_usage\":{\"input_tokens\":80000}},\"cwd\":\"/Users/babarot/src/github.com/babarot/dotfiles\"}' | deno run --allow-run --allow-read --allow-env --allow-net src/main.ts --bar-style block --path-style short",
     "compile": "deno compile --allow-run=git,security --allow-read --allow-write --allow-env=HOME,CLAUDE_CODE_OAUTH_TOKEN --allow-net=api.anthropic.com -o c-c-statusline src/main.ts",
     "compile:macos-arm": "deno compile --target aarch64-apple-darwin --allow-run=git,security --allow-read --allow-write --allow-env=HOME,CLAUDE_CODE_OAUTH_TOKEN --allow-net=api.anthropic.com -o dist/c-c-statusline-darwin-arm64 src/main.ts",
