@@ -31,25 +31,63 @@ function advanceReset(
 
 import type { UsageData } from "./usage.ts";
 
+/** Check if a resets_at timestamp is in the past (window has rolled over). */
+function isWindowExpired(isoStr: string | undefined | null): boolean {
+  if (!isoStr) return false;
+  const t = new Date(isoStr).getTime();
+  return !isNaN(t) && t < Date.now();
+}
+
+/** Format how old the cached data is (e.g. "3m前", "2h前"). */
+function formatStaleness(fetchedAt: number | undefined): string {
+  if (!fetchedAt) return "";
+  const diffMs = Date.now() - fetchedAt;
+  if (diffMs < 60_000) return "";
+  const mins = Math.floor(diffMs / 60_000);
+  if (mins < 60) return `${mins}m`;
+  const hours = Math.floor(mins / 60);
+  const remMins = mins % 60;
+  return remMins > 0 ? `${hours}h${remMins}m` : `${hours}h`;
+}
+
 function renderRateLines(usageData: UsageData, options: RenderOptions): string {
   const barWidth = 10;
   const lines: string[] = [];
 
-  const fiveHourPct = Math.round(usageData.five_hour?.utilization ?? 0);
+  const staleLabel = formatStaleness(usageData._fetched_at);
+  const fiveHourExpired = isWindowExpired(usageData.five_hour?.resets_at);
+  const sevenDayExpired = isWindowExpired(usageData.seven_day?.resets_at);
+
+  // Current (5-hour window)
   const fiveHourResetAt = advanceReset(usageData.five_hour?.resets_at, 5 * 60 * 60_000);
   const fiveHourReset = formatResetTime(fiveHourResetAt, "time", options.timeStyle);
-  const fiveHourBar = buildBar(fiveHourPct, barWidth, options.barStyle);
-  const fiveHourPctFmt = String(fiveHourPct).padStart(3);
+  if (fiveHourExpired) {
+    const emptyBar = buildBar(0, barWidth, options.barStyle);
+    lines.push(`${paint("current", "muted")} ${emptyBar} ${dim("  ?%")} ${dim("⟳")} ${paint(fiveHourReset, "muted")}`);
+  } else {
+    const fiveHourPct = Math.round(usageData.five_hour?.utilization ?? 0);
+    const fiveHourBar = buildBar(fiveHourPct, barWidth, options.barStyle);
+    const fiveHourPctFmt = String(fiveHourPct).padStart(3);
+    lines.push(`${paint("current", "muted")} ${fiveHourBar} ${paint(`${fiveHourPctFmt}%`, colorForPct(fiveHourPct))} ${dim("⟳")} ${paint(fiveHourReset, "muted")}`);
+  }
 
-  lines.push(`${paint("current", "muted")} ${fiveHourBar} ${paint(`${fiveHourPctFmt}%`, colorForPct(fiveHourPct))} ${dim("⟳")} ${paint(fiveHourReset, "muted")}`);
-
-  const sevenDayPct = Math.round(usageData.seven_day?.utilization ?? 0);
+  // Weekly (7-day window)
   const sevenDayResetAt = advanceReset(usageData.seven_day?.resets_at, 7 * 24 * 60 * 60_000);
   const sevenDayReset = formatResetTime(sevenDayResetAt, "datetime", options.timeStyle);
-  const sevenDayBar = buildBar(sevenDayPct, barWidth, options.barStyle);
-  const sevenDayPctFmt = String(sevenDayPct).padStart(3);
+  if (sevenDayExpired) {
+    const emptyBar = buildBar(0, barWidth, options.barStyle);
+    lines.push(`${paint("weekly", "muted")}  ${emptyBar} ${dim("  ?%")} ${dim("⟳")} ${paint(sevenDayReset, "muted")}`);
+  } else {
+    const sevenDayPct = Math.round(usageData.seven_day?.utilization ?? 0);
+    const sevenDayBar = buildBar(sevenDayPct, barWidth, options.barStyle);
+    const sevenDayPctFmt = String(sevenDayPct).padStart(3);
+    lines.push(`${paint("weekly", "muted")}  ${sevenDayBar} ${paint(`${sevenDayPctFmt}%`, colorForPct(sevenDayPct))} ${dim("⟳")} ${paint(sevenDayReset, "muted")}`);
+  }
 
-  lines.push(`${paint("weekly", "muted")}  ${sevenDayBar} ${paint(`${sevenDayPctFmt}%`, colorForPct(sevenDayPct))} ${dim("⟳")} ${paint(sevenDayReset, "muted")}`);
+  // Stale data indicator
+  if ((fiveHourExpired || sevenDayExpired) && staleLabel) {
+    lines.push(dim(`(stale: ${staleLabel} ago)`));
+  }
 
   if (usageData.extra_usage?.is_enabled && (usageData.extra_usage.used_credits ?? 0) > 0) {
     const extraPct = Math.round(usageData.extra_usage.utilization ?? 0);
@@ -80,7 +118,7 @@ export async function renderStatusLine(
     (data.model as Record<string, string>)?.display_name ?? "Claude";
 
   // Context — prefer pre-calculated percentage from Claude Code
-  const USABLE_CONTEXT_RATIO = 0.8;
+  const USABLE_CONTEXT_RATIO = 0.85;
   const ctxWindow = data.context_window as Record<string, unknown> | undefined;
   const pctUsed = (ctxWindow?.used_percentage as number) ?? 0;
   const ctxSize = (ctxWindow?.context_window_size as number) ?? 200000;
