@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.2.5](https://github.com/babarot/c-c-statusline/compare/0.2.4...0.2.5) - 2026-03-13
+
 ## [0.2.4](https://github.com/babarot/c-c-statusline/compare/0.2.3...0.2.4) - 2026-03-12
 
 ## [0.2.3](https://github.com/babarot/c-c-statusline/compare/0.2.2...0.2.3) - 2026-03-11
