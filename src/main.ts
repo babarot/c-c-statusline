@@ -5,11 +5,12 @@ import { themeNames } from "./themes.ts";
 import { renderStatusLine } from "./render.ts";
 import { defaultGitSymbols, parseGitSymbols } from "./git.ts";
 import { mergeDefaults, generateConfig, OPTION_DEFAULTS } from "./config.ts";
+import { performUpgrade } from "./upgrade.ts";
 
 const { defaults: mergedDefaults, configGitSymbols } = await mergeDefaults();
 
 const args = parseArgs(Deno.args, {
-  boolean: ["help", "version", "debug", "init-config"],
+  boolean: ["help", "version", "debug", "init-config", "upgrade"],
   string: ["bar-style", "path-style", "theme", "time-style", "ctx-format", "vim-mode", "git-symbols"],
   default: mergedDefaults,
   alias: { h: "help", v: "version" },
@@ -17,6 +18,11 @@ const args = parseArgs(Deno.args, {
 
 if (args["init-config"]) {
   await generateConfig(OPTION_DEFAULTS);
+  Deno.exit(0);
+}
+
+if (args.upgrade) {
+  await performUpgrade();
   Deno.exit(0);
 }
 
@@ -41,6 +47,7 @@ Options:
   --git-symbols <key=val,...>                Override git symbols (default: unstaged=*,staged=+,stash=$,untracked=%,ahead=↑,behind=↓)
                                              Example: --git-symbols "stash=-,untracked=?"
   --init-config                              Generate ~/.claude/statusline.yaml with defaults
+  --upgrade                                  Self-upgrade to the latest release
   -h, --help                                 Show this help
   -v, --version                              Show version
 

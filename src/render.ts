@@ -5,6 +5,7 @@ import type { GitSymbols } from "./git.ts";
 import { formatSessionDuration } from "./session.ts";
 import { readEffortLevel } from "./effort.ts";
 import { fetchUsageData } from "./usage.ts";
+import { checkForUpdate } from "./upgrade.ts";
 
 export interface RenderOptions {
   barStyle: string;
@@ -130,11 +131,12 @@ export async function renderStatusLine(
   const cwd = (data.cwd as string) || Deno.cwd();
   const dirname = formatPath(cwd, options.pathStyle);
 
-  // Parallel: git, effort, usage API
-  const [gitInfo, effort, usageData] = await Promise.all([
+  // Parallel: git, effort, usage API, update check
+  const [gitInfo, effort, usageData, updateInfo] = await Promise.all([
     getGitInfo(cwd),
     readEffortLevel(),
     fetchUsageData(),
+    checkForUpdate(),
   ]);
 
   // Session
@@ -222,6 +224,12 @@ export async function renderStatusLine(
       const vimColor = vimMode === "INSERT" ? "success" : "primary";
       line1 += paint(vimMode, vimColor);
     }
+  }
+
+  // Update notification
+  if (updateInfo?.available) {
+    line1 += sep;
+    line1 += paint(`↑ ${updateInfo.latest}`, "accent");
   }
 
   const rateLines = usageData ? renderRateLines(usageData, options) : "";
