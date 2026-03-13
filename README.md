@@ -1,6 +1,5 @@
 # c-c-statusline
 
-
 [![Test](https://github.com/babarot/c-c-statusline/actions/workflows/test.yml/badge.svg)](https://github.com/babarot/c-c-statusline/actions/workflows/test.yml)
 
 A Deno-powered status line for Claude Code CLI.
@@ -20,7 +19,7 @@ curl -fsSL https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/ins
 # npx
 npx @babarot/c-c-statusline
 
-# Deno
+# deno
 deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.ts
 ```
 
@@ -33,10 +32,19 @@ Generate `~/.claude/statusline.yaml` with defaults:
 ```bash
 # After install
 ~/.claude/c-c-statusline --init-config
+```
 
-# Or during install
-curl -fsSL https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.sh \
-  | bash -s -- --init-config
+Or during install:
+
+```bash
+# curl
+curl -fsSL https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.sh | bash -s -- --init-config
+
+# npx
+npx @babarot/c-c-statusline --init-config
+
+# deno
+deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.ts --init-config
 ```
 
 Then edit to your liking:
@@ -71,8 +79,16 @@ options:
 CLI flags override config file values. Pass flags during install to bake them into `settings.json`:
 
 ```bash
+# curl
 curl -fsSL https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.sh \
   | bash -s -- --bar-style block --path-style short --theme tokyo-night
+
+# npx
+npx @babarot/c-c-statusline --bar-style block --path-style short --theme tokyo-night
+
+# deno
+deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.ts \
+  --bar-style block --path-style short --theme tokyo-night
 ```
 
 This writes the flags directly into the command:
@@ -247,7 +263,7 @@ curl -fsSL https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/ins
 # npx
 npx @babarot/c-c-statusline --uninstall
 
-# Deno
+# deno
 deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.ts --uninstall
 ```
 
