@@ -32,6 +32,27 @@ function advanceReset(
 
 import type { UsageData } from "./usage.ts";
 
+/** Convert stdin rate_limits (v2.1.80+) to internal UsageData format. */
+export function convertStdinRateLimits(
+  rateLimits: Record<string, unknown>,
+): UsageData {
+  const convert = (
+    window: Record<string, unknown> | undefined,
+  ): { utilization?: number; resets_at?: string } | undefined => {
+    if (!window) return undefined;
+    const pct = window.used_percentage as number | undefined;
+    const epoch = window.resets_at as number | undefined;
+    return {
+      utilization: pct,
+      resets_at: epoch != null ? new Date(epoch * 1000).toISOString() : undefined,
+    };
+  };
+  return {
+    five_hour: convert(rateLimits.five_hour as Record<string, unknown> | undefined),
+    seven_day: convert(rateLimits.seven_day as Record<string, unknown> | undefined),
+  };
+}
+
 /** Check if a resets_at timestamp is in the past (window has rolled over). */
 function isWindowExpired(isoStr: string | undefined | null): boolean {
   if (!isoStr) return false;
@@ -131,13 +152,20 @@ export async function renderStatusLine(
   const cwd = (data.cwd as string) || Deno.cwd();
   const dirname = formatPath(cwd, options.pathStyle);
 
-  // Parallel: git, effort, usage API, update check
-  const [gitInfo, effort, usageData, updateInfo] = await Promise.all([
+  // Extract stdin rate_limits (Claude Code v2.1.80+)
+  const stdinRateLimits = data.rate_limits as Record<string, unknown> | undefined;
+
+  // Parallel: git, effort, usage API (only if no stdin rate_limits), update check
+  const [gitInfo, effort, apiUsageData, updateInfo] = await Promise.all([
     getGitInfo(cwd),
     readEffortLevel(),
-    fetchUsageData(),
+    stdinRateLimits ? Promise.resolve(null) : fetchUsageData(),
     checkForUpdate(),
   ]);
+
+  const usageData: UsageData | null = stdinRateLimits
+    ? convertStdinRateLimits(stdinRateLimits)
+    : apiUsageData;
 
   // Session
   const sessionDuration = formatSessionDuration(
