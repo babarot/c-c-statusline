@@ -139,7 +139,7 @@ async function detectOperation(gitDir: string): Promise<{ operation: string; ste
 export async function getGitInfo(cwd: string): Promise<GitInfo> {
   // Single command: branch, upstream, all file statuses
   const status = await exec(
-    ["git", "-C", cwd, "status", "--porcelain=v2", "--branch", "--show-stash"],
+    ["git", "--no-optional-locks", "-C", cwd, "status", "--porcelain=v2", "--branch", "--show-stash"],
   );
   if (status === null) return { ...emptyInfo };
 
