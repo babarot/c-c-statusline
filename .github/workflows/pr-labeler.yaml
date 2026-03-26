@@ -1,7 +1,19 @@
 name: PR Labeler
 
+# Why pull_request_target instead of pull_request:
+#
+# pull_request events from forks run with read-only permissions, so the
+# labeler cannot write labels and fails with "Resource not accessible by
+# integration". pull_request_target runs in the context of the base
+# repository and has write access.
+#
+# Security note: pull_request_target is safe here because this workflow
+# only runs actions/labeler, which fetches the PR file list via the
+# GitHub API — it never checks out or executes code from the fork.
+# The dangerous pattern is pull_request_target + actions/checkout of
+# the fork HEAD + running arbitrary scripts (npm install, make, etc.).
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize]
 
 permissions:
