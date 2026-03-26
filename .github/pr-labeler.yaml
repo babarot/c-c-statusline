@@ -1,0 +1,9 @@
+changelog/skip:
+  - all:
+    - changed-files:
+      - all-globs-to-all-files:
+        - '!src/**'
+        - '!bin/**'
+        - '!CHANGELOG.md'
+        - '!deno.json'
+        - '!deno.lock'

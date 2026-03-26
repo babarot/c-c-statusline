@@ -1,5 +1,9 @@
+# config file for the tagpr in git config format
+# vim: ft=ini
 [tagpr]
-	changelog = true
 	releaseBranch = main
 	vPrefix = false
 	versionFile = src/version.ts,deno.json,package.json
+	changelog = true
+	majorLabels = release/major,kind/breaking-change
+	minorLabels = release/minor,kind/feature,kind/deprecation
