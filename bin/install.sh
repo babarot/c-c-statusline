@@ -222,6 +222,7 @@ while [[ $# -gt 0 ]]; do
       log "  --time-style <absolute|relative>          Time format (default: absolute)"
       log "  --ctx-format <format>                     Context display format"
       log "  --vim-mode <auto|always|off>              Vim mode display (default: auto)"
+      log "  --model-name <on|off>                     Model name display (default: on)"
       log "  --git-symbols <key=val,...>               Override git symbols"
       log "  --init-config                             Generate ~/.claude/statusline.yaml"
       log "  --uninstall                               Remove statusline"
@@ -237,7 +238,7 @@ while [[ $# -gt 0 ]]; do
       INIT_CONFIG=true
       shift
       ;;
-    --bar-style|--path-style|--theme|--time-style|--ctx-format|--vim-mode|--git-symbols)
+    --bar-style|--path-style|--theme|--time-style|--ctx-format|--vim-mode|--model-name|--git-symbols)
       EXTRA_ARGS+=("$1" "$2")
       shift 2
       ;;

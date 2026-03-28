@@ -8,6 +8,7 @@ export interface OptionsConfig {
   "time-style"?: string;
   "ctx-format"?: string;
   "vim-mode"?: string;
+  "model-name"?: string;
   "git-symbols"?: Partial<GitSymbols> | string;
 }
 
@@ -59,6 +60,7 @@ export interface OptionDefaults {
   "time-style": string;
   "ctx-format": string;
   "vim-mode": string;
+  "model-name": string;
 }
 
 export const OPTION_DEFAULTS: OptionDefaults = {
@@ -68,6 +70,7 @@ export const OPTION_DEFAULTS: OptionDefaults = {
   "time-style": "absolute",
   "ctx-format": "ctx {used}/{total} ({pct}%)",
   "vim-mode": "auto",
+  "model-name": "on",
 };
 
 export interface MergedConfig {
@@ -108,6 +111,7 @@ export async function generateConfig(defaults: OptionDefaults): Promise<void> {
       "time-style": defaults["time-style"],
       "ctx-format": defaults["ctx-format"],
       "vim-mode": defaults["vim-mode"],
+      "model-name": defaults["model-name"],
     },
   };
 

@@ -14,6 +14,7 @@ export interface RenderOptions {
   ctxFormat: string;
   gitSymbols: GitSymbols;
   vimMode: "auto" | "always" | "off";
+  modelName: "on" | "off";
 }
 
 /** Advance a past resets_at by windowMs increments until it's in the future. */
@@ -173,8 +174,11 @@ export async function renderStatusLine(
   );
 
   // ── Line 1 ──────────────────────────────────────────
-  let line1 = paint(modelName, "primary");
-  line1 += sep;
+  let line1 = "";
+  if (options.modelName !== "off") {
+    line1 += paint(modelName, "primary");
+    line1 += sep;
+  }
 
   const ctxText = options.ctxFormat
     .replace(/\{used\}/g, formatTokens(ctxUsed))

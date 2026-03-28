@@ -113,6 +113,7 @@ This writes the flags directly into the command:
 | `time-style` | `absolute`, `relative` | `absolute` | Reset time format |
 | `ctx-format` | Format string | `ctx {used}/{total} ({pct}%)` | Context display format |
 | `vim-mode` | `auto`, `always`, `off` | `auto` | Vim mode indicator display |
+| `model-name` | `on`, `off` | `on` | Model name display |
 | `git-symbols` | Map or `key=val,...` | See [below](#git-symbols) | Override git status symbols |
 
 ### bar-style
@@ -158,6 +159,21 @@ Use `{used}`, `{total}`, `{pct}`, `{compact}` placeholders.
 | `--ctx-format '{pct}% ({used}/{total})'` | `14% (28k/200k)` |
 | `--ctx-format '{pct}% compact:{compact}%'` | `14% compact:83%` |
 | `--ctx-format '{used} of {total}'` | `28k of 200k` |
+
+### model-name
+
+Controls whether the model name (e.g. "Claude 4 Opus") is shown at the beginning of line 1.
+
+| Value | Behavior |
+|---|---|
+| `on` | Show model name (default) |
+| `off` | Hide model name |
+
+```yaml
+# ~/.claude/statusline.yaml
+options:
+  model-name: "off"
+```
 
 ### vim-mode
 
