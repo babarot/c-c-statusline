@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { resolveGitSymbolsFromConfig, type Config } from "./config.ts";
+import { resolveGitSymbolsFromConfig, resolveLines, DEFAULT_LINES, KNOWN_ITEMS, type Config, type FullConfig } from "./config.ts";
 
 Deno.test("resolveGitSymbolsFromConfig: returns empty for no config", () => {
   assertEquals(resolveGitSymbolsFromConfig({}), {});
@@ -56,4 +56,64 @@ Deno.test("resolveGitSymbolsFromConfig: returns empty for string input", () => {
     },
   };
   assertEquals(resolveGitSymbolsFromConfig(config), {});
+});
+
+// ── resolveLines ────────────────────────────────────────
+
+Deno.test("resolveLines: returns DEFAULT_LINES when no lines in config", () => {
+  assertEquals(resolveLines({}), DEFAULT_LINES);
+});
+
+Deno.test("resolveLines: returns DEFAULT_LINES when lines is undefined", () => {
+  const config: FullConfig = { theme: "default" };
+  assertEquals(resolveLines(config), DEFAULT_LINES);
+});
+
+Deno.test("resolveLines: uses custom lines from config", () => {
+  const config: FullConfig = {
+    lines: [
+      ["git", "model"],
+      ["usage"],
+    ],
+  };
+  assertEquals(resolveLines(config), [["git", "model"], ["usage"]]);
+});
+
+Deno.test("resolveLines: filters out unknown item IDs", () => {
+  const config: FullConfig = {
+    lines: [
+      ["model", "unknown_item", "git"],
+      ["usage", "fake"],
+    ],
+  };
+  assertEquals(resolveLines(config), [["model", "git"], ["usage"]]);
+});
+
+Deno.test("resolveLines: handles empty lines array", () => {
+  const config: FullConfig = { lines: [] };
+  assertEquals(resolveLines(config), []);
+});
+
+Deno.test("resolveLines: handles single line with all items", () => {
+  const config: FullConfig = {
+    lines: [["model", "context", "git", "duration", "effort", "vim", "update", "usage"]],
+  };
+  assertEquals(resolveLines(config), [["model", "context", "git", "duration", "effort", "vim", "update", "usage"]]);
+});
+
+// ── DEFAULT_LINES & KNOWN_ITEMS ─────────────────────────
+
+Deno.test("DEFAULT_LINES contains only known items", () => {
+  for (const line of DEFAULT_LINES) {
+    for (const id of line) {
+      assertEquals(KNOWN_ITEMS.has(id), true, `DEFAULT_LINES contains unknown item "${id}"`);
+    }
+  }
+});
+
+Deno.test("KNOWN_ITEMS covers all items in DEFAULT_LINES", () => {
+  const allIds = new Set(DEFAULT_LINES.flat());
+  for (const id of allIds) {
+    assertEquals(KNOWN_ITEMS.has(id), true, `Item "${id}" not in KNOWN_ITEMS`);
+  }
 });

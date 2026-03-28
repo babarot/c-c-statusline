@@ -6,6 +6,7 @@ import { fetchUsageData } from "./usage.ts";
 import { checkForUpdate } from "./upgrade.ts";
 import type { UsageData } from "./usage.ts";
 import type { RenderOptions, RenderContext, StatusItem } from "./items/types.ts";
+import { DEFAULT_LINES } from "./config.ts";
 
 import { modelItem } from "./items/model.ts";
 import { contextItem } from "./items/context.ts";
@@ -18,21 +19,24 @@ import { usageItem } from "./items/usage.ts";
 
 export type { RenderOptions };
 
-/** Default line 1 items in display order. */
-const line1Items: StatusItem[] = [
-  modelItem,
-  contextItem,
-  gitStatusItem,
-  durationItem,
-  effortItem,
-  vimItem,
-  updateItem,
-];
+/** Registry of all available status items, keyed by id. */
+const itemRegistry: Record<string, StatusItem> = {
+  model: modelItem,
+  context: contextItem,
+  git: gitStatusItem,
+  duration: durationItem,
+  effort: effortItem,
+  vim: vimItem,
+  update: updateItem,
+  usage: usageItem,
+};
 
-/** Default line 2+ items. */
-const line2Items: StatusItem[] = [
-  usageItem,
-];
+/** Resolve item IDs to StatusItem instances, skipping unknown IDs. */
+function resolveItems(ids: string[]): StatusItem[] {
+  return ids
+    .map((id) => itemRegistry[id])
+    .filter((item): item is StatusItem => item !== undefined);
+}
 
 /** Convert stdin rate_limits (v2.1.80+) to internal UsageData format. */
 export function convertStdinRateLimits(
@@ -58,6 +62,7 @@ export function convertStdinRateLimits(
 export async function renderStatusLine(
   data: Record<string, unknown>,
   options: RenderOptions,
+  lines: string[][] = DEFAULT_LINES,
 ): Promise<string> {
   const cwd = (data.cwd as string) || Deno.cwd();
 
@@ -91,21 +96,19 @@ export async function renderStatusLine(
     sessionDuration,
   };
 
-  // Render line 1: inline items joined by separator
+  // Render each line from layout config
   const sep = ` ${dim("\u2502")} `;
-  const line1Parts = line1Items
-    .map((item) => item.render(ctx))
-    .filter((s): s is string => s !== null);
-  const line1 = line1Parts.join(sep);
+  const renderedLines: string[] = [];
 
-  // Render line 2+: block items (each returns multi-line string or null)
-  const line2Parts = line2Items
-    .map((item) => item.render(ctx))
-    .filter((s): s is string => s !== null);
-
-  let output = line1;
-  if (line2Parts.length > 0) {
-    output += `\n\n${line2Parts.join("\n")}`;
+  for (const lineIds of lines) {
+    const items = resolveItems(lineIds);
+    const parts = items
+      .map((item) => item.render(ctx))
+      .filter((s): s is string => s !== null);
+    if (parts.length > 0) {
+      renderedLines.push(parts.join(sep));
+    }
   }
-  return output;
+
+  return renderedLines.join("\n\n");
 }
