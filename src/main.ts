@@ -7,7 +7,7 @@ import { defaultGitSymbols, parseGitSymbols } from "./git.ts";
 import { mergeDefaults, generateConfig, OPTION_DEFAULTS } from "./config.ts";
 import { performUpgrade } from "./upgrade.ts";
 
-const { defaults: mergedDefaults, configGitSymbols } = await mergeDefaults();
+const { defaults: mergedDefaults, configGitSymbols, lines } = await mergeDefaults();
 
 const args = parseArgs(Deno.args, {
   boolean: ["help", "version", "debug", "init-config", "upgrade"],
@@ -123,6 +123,6 @@ const output = await renderStatusLine(data, {
   vimMode: args["vim-mode"] as "auto" | "always" | "off",
   modelName: args["model-name"] as "on" | "off",
   gitSymbols,
-});
+}, lines);
 
 console.log(output);

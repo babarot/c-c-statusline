@@ -51,15 +51,28 @@ Then edit to your liking:
 
 ```yaml
 # ~/.claude/statusline.yaml
-options:
-  bar-style: block
-  path-style: short
-  theme: tokyo-night-storm
-  time-style: relative
-  ctx-format: 'ctx {used}/{total} ({pct}%)'
-  git-symbols:
-    stash: "-"
-    untracked: "?"
+theme: tokyo-night-storm
+
+# Layout: controls which items appear on each line and their order.
+# Items not listed here are hidden. Remove an item to hide it.
+lines:
+  - [model, context, git, duration, effort, vim, update]
+  - [usage]
+
+# Per-item options
+items:
+  context:
+    format: 'ctx {used}/{total} ({pct}%)'
+  git:
+    path-style: short
+    # symbols:
+    #   stash: "-"
+    #   untracked: "?"
+  vim:
+    mode: auto
+  usage:
+    bar-style: block
+    time-style: relative
 ```
 
 `settings.json` stays clean — no flags in the command:
@@ -103,18 +116,56 @@ This writes the flags directly into the command:
 }
 ```
 
+## Layout
+
+The `lines` config controls which items appear and in what order. Each array is a display line:
+
+```yaml
+lines:
+  - [model, context, git, duration, effort, vim, update]  # line 1
+  - [usage]                                                 # line 2+
+```
+
+**Available items:** `model`, `context`, `git`, `duration`, `effort`, `vim`, `update`, `usage`
+
+- Items are rendered left-to-right within each line, separated by `│`
+- Remove an item from `lines` to hide it
+- Reorder items to change display order
+- If `lines` is omitted, the default layout above is used
+
+Examples:
+
+```yaml
+# Minimal: only git and usage
+lines:
+  - [git, effort]
+  - [usage]
+
+# Everything on one line (no rate limit bars)
+lines:
+  - [model, context, git, duration, effort, vim, update, usage]
+
+# Custom order
+lines:
+  - [git, context, model]
+  - [usage]
+```
+
 ## Options
 
-| Option | Values | Default | Description |
-|---|---|---|---|
-| `bar-style` | `dot`, `block`, `fill` | `dot` | Progress bar style |
-| `path-style` | `parent`, `full`, `short`, `basename` | `parent` | Directory display style |
-| `theme` | See [Themes](#themes) | `default` | Color theme |
-| `time-style` | `absolute`, `relative` | `absolute` | Reset time format |
-| `ctx-format` | Format string | `ctx {used}/{total} ({pct}%)` | Context display format |
-| `vim-mode` | `auto`, `always`, `off` | `auto` | Vim mode indicator display |
-| `model-name` | `on`, `off` | `on` | Model name display |
-| `git-symbols` | Map or `key=val,...` | See [below](#git-symbols) | Override git status symbols |
+Options are organized per-item under the `items` section, plus a global `theme`:
+
+| Scope | Option | Values | Default | Description |
+|---|---|---|---|---|
+| global | `theme` | See [Themes](#themes) | `default` | Color theme |
+| `items.usage` | `bar-style` | `dot`, `block`, `fill` | `dot` | Progress bar style |
+| `items.usage` | `time-style` | `absolute`, `relative` | `absolute` | Reset time format |
+| `items.git` | `path-style` | `parent`, `full`, `short`, `basename` | `parent` | Directory display style |
+| `items.git` | `symbols` | Map | See [below](#git-symbols) | Override git status symbols |
+| `items.context` | `format` | Format string | `ctx {used}/{total} ({pct}%)` | Context display format |
+| `items.vim` | `mode` | `auto`, `always` | `auto` | Vim mode indicator behavior |
+
+> **Legacy support:** The flat `options` format (e.g. `options.bar-style`) still works for backward compatibility. CLI flags (e.g. `--bar-style`) also continue to work and override config file values.
 
 ### bar-style
 
@@ -162,36 +213,37 @@ Use `{used}`, `{total}`, `{pct}`, `{compact}` placeholders.
 
 ### model-name
 
-Controls whether the model name (e.g. "Claude 4 Opus") is shown at the beginning of line 1.
-
-| Value | Behavior |
-|---|---|
-| `on` | Show model name (default) |
-| `off` | Hide model name |
+To hide the model name, remove `model` from `lines`:
 
 ```yaml
-# ~/.claude/statusline.yaml
-options:
-  model-name: "off"
+lines:
+  - [context, git, duration, effort, vim, update]  # no "model"
+  - [usage]
 ```
+
+> Legacy: `--model-name off` and `options.model-name: "off"` still work.
 
 ### vim-mode
 
-Shows the current Vim mode when Claude Code's Vim keybinding is enabled. The indicator is appended to the end of line 1.
+Shows the current Vim mode when Claude Code's Vim keybinding is enabled.
 
 | Value | Behavior |
 |---|---|
 | `auto` | Show only in `NORMAL` mode (hides in `INSERT` to reduce noise) |
 | `always` | Show in all modes (`NORMAL`, `INSERT`, etc.) |
-| `off` | Never show |
 
-Mode colors: `NORMAL` uses the theme's primary color, `INSERT` uses success (green).
+To hide the vim indicator entirely, remove `vim` from `lines`. To control its behavior:
 
 ```yaml
 # ~/.claude/statusline.yaml
-options:
-  vim-mode: auto
+items:
+  vim:
+    mode: auto
 ```
+
+Mode colors: `NORMAL` uses the theme's primary color, `INSERT` uses success (green).
+
+> Legacy: `--vim-mode off` and `options.vim-mode: "off"` still work.
 
 ### Themes
 
@@ -233,17 +285,22 @@ Override any git status symbol. In the config file, use a map; with CLI flags, u
 
 Config file:
 ```yaml
-options:
-  git-symbols:
-    stash: "-"
-    untracked: "?"
+items:
+  git:
+    symbols:
+      stash: "-"
+      untracked: "?"
 ```
+
+> Legacy: `options.git-symbols` also still works.
 
 ## What it shows
 
-**Line 1:** Model name, context usage (tokens + %), directory, git status, session duration, effort level
+**Line 1** (default): Model name, context usage (tokens + %), directory, git status, session duration, effort level, vim mode, update notification
 
-**Lines 2+:** Rate limit usage (current 5-hour window, weekly, extra credits when active)
+**Lines 2+** (default): Rate limit usage (current 5-hour window, weekly, extra credits when active)
+
+All items can be reordered, shown, or hidden via the [`lines` config](#layout).
 
 ### Git status
 
