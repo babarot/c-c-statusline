@@ -110,5 +110,5 @@ export async function renderStatusLine(
     }
   }
 
-  return renderedLines.join("\n\n");
+  return renderedLines.join("\n\n") + "\n";
 }

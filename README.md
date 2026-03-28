@@ -23,6 +23,18 @@ npx @babarot/c-c-statusline
 deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.ts
 ```
 
+### Build from source
+
+Requires [Deno](https://deno.land/).
+
+```bash
+git clone https://github.com/babarot/c-c-statusline.git
+cd c-c-statusline
+make install
+```
+
+This compiles the binary and installs it to `~/.claude/c-c-statusline`.
+
 ## Configure
 
 ### Config file (recommended)
