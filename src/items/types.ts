@@ -1,4 +1,5 @@
-import type { GitInfo, GitSymbols } from "../git.ts";
+import type { GitInfo, GitSymbols, RemoteInfo } from "../git.ts";
+import type { GitLinkConfig } from "../config.ts";
 import type { UsageData } from "../usage.ts";
 
 /** Pre-fetched data shared across all status items. */
@@ -17,6 +18,8 @@ export interface RenderContext {
   updateInfo: { available: boolean; latest: string } | null;
   /** Formatted session duration (e.g. "5m", "1h23m"), empty if unavailable. */
   sessionDuration: string;
+  /** Parsed git remote info for link generation (null if unavailable or disabled). */
+  remoteInfo: RemoteInfo | null;
 }
 
 export interface RenderOptions {
@@ -27,6 +30,7 @@ export interface RenderOptions {
   gitSymbols: GitSymbols;
   vimMode: "auto" | "always" | "off";
   modelName: "on" | "off";
+  gitLink: GitLinkConfig;
 }
 
 /** A single status line display item. */

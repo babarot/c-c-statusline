@@ -117,3 +117,56 @@ Deno.test("KNOWN_ITEMS covers all items in DEFAULT_LINES", () => {
     assertEquals(KNOWN_ITEMS.has(id), true, `Item "${id}" not in KNOWN_ITEMS`);
   }
 });
+
+// ── resolveGitLinkFromItems ────────────────────────────
+
+import { DEFAULT_GIT_LINK, resolveGitLinkFromItems, type ItemsConfig } from "./config.ts";
+
+Deno.test("resolveGitLinkFromItems: returns defaults when no link config", () => {
+  assertEquals(resolveGitLinkFromItems({}), DEFAULT_GIT_LINK);
+});
+
+Deno.test("resolveGitLinkFromItems: returns defaults when git section has no link", () => {
+  const items: ItemsConfig = { git: { "path-style": "parent" } };
+  assertEquals(resolveGitLinkFromItems(items), DEFAULT_GIT_LINK);
+});
+
+Deno.test("resolveGitLinkFromItems: reads enabled only, fills defaults elsewhere", () => {
+  const items: ItemsConfig = { git: { link: { enabled: true } } };
+  assertEquals(resolveGitLinkFromItems(items), {
+    enabled: true,
+    template: DEFAULT_GIT_LINK.template,
+    remote: DEFAULT_GIT_LINK.remote,
+  });
+});
+
+Deno.test("resolveGitLinkFromItems: full override", () => {
+  const items: ItemsConfig = {
+    git: {
+      link: {
+        enabled: true,
+        template: "https://gitlab.example/{owner}/{repo}/-/tree/{branch}",
+        remote: "upstream",
+      },
+    },
+  };
+  assertEquals(resolveGitLinkFromItems(items), {
+    enabled: true,
+    template: "https://gitlab.example/{owner}/{repo}/-/tree/{branch}",
+    remote: "upstream",
+  });
+});
+
+Deno.test("resolveGitLinkFromItems: empty template falls back to default", () => {
+  const items: ItemsConfig = {
+    git: { link: { enabled: true, template: "" } },
+  };
+  assertEquals(resolveGitLinkFromItems(items).template, DEFAULT_GIT_LINK.template);
+});
+
+Deno.test("resolveGitLinkFromItems: empty remote falls back to default", () => {
+  const items: ItemsConfig = {
+    git: { link: { enabled: true, remote: "" } },
+  };
+  assertEquals(resolveGitLinkFromItems(items).remote, DEFAULT_GIT_LINK.remote);
+});

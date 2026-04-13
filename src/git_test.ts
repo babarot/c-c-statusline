@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { getGitInfo } from "./git.ts";
+import { getGitInfo, parseRemoteUrl } from "./git.ts";
 
 // ── Helpers ──────────────────────────────────────────
 
@@ -356,4 +356,67 @@ Deno.test("getGitInfo: detects behind count", async () => {
     await cleanup(dir);
     await cleanup(remote);
   }
+});
+
+// ── parseRemoteUrl ───────────────────────────────────
+
+Deno.test("parseRemoteUrl: scp-like git@ with .git suffix", () => {
+  assertEquals(
+    parseRemoteUrl("git@github.com:babarot/c-c-statusline.git"),
+    { host: "github.com", owner: "babarot", repo: "c-c-statusline" },
+  );
+});
+
+Deno.test("parseRemoteUrl: scp-like git@ without .git suffix", () => {
+  assertEquals(
+    parseRemoteUrl("git@github.com:babarot/c-c-statusline"),
+    { host: "github.com", owner: "babarot", repo: "c-c-statusline" },
+  );
+});
+
+Deno.test("parseRemoteUrl: https with .git suffix", () => {
+  assertEquals(
+    parseRemoteUrl("https://github.com/babarot/c-c-statusline.git"),
+    { host: "github.com", owner: "babarot", repo: "c-c-statusline" },
+  );
+});
+
+Deno.test("parseRemoteUrl: https without .git suffix", () => {
+  assertEquals(
+    parseRemoteUrl("https://github.com/babarot/c-c-statusline"),
+    { host: "github.com", owner: "babarot", repo: "c-c-statusline" },
+  );
+});
+
+Deno.test("parseRemoteUrl: ssh://git@ form", () => {
+  assertEquals(
+    parseRemoteUrl("ssh://git@github.com/babarot/c-c-statusline.git"),
+    { host: "github.com", owner: "babarot", repo: "c-c-statusline" },
+  );
+});
+
+Deno.test("parseRemoteUrl: ssh:// with port", () => {
+  assertEquals(
+    parseRemoteUrl("ssh://git@github.com:22/babarot/c-c-statusline.git"),
+    { host: "github.com", owner: "babarot", repo: "c-c-statusline" },
+  );
+});
+
+Deno.test("parseRemoteUrl: https with GHE host", () => {
+  assertEquals(
+    parseRemoteUrl("https://ghe.internal.example/team/project.git"),
+    { host: "ghe.internal.example", owner: "team", repo: "project" },
+  );
+});
+
+Deno.test("parseRemoteUrl: returns null for file:// URL", () => {
+  assertEquals(parseRemoteUrl("file:///path/to/repo"), null);
+});
+
+Deno.test("parseRemoteUrl: returns null for empty string", () => {
+  assertEquals(parseRemoteUrl(""), null);
+});
+
+Deno.test("parseRemoteUrl: returns null for unsupported form", () => {
+  assertEquals(parseRemoteUrl("not-a-url"), null);
 });
