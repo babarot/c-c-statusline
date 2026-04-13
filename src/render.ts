@@ -1,12 +1,21 @@
 import { dim } from "./colors.ts";
-import { getGitInfo } from "./git.ts";
+import { getGitInfo, getRemoteUrl, parseRemoteUrl } from "./git.ts";
+import type { RemoteInfo } from "./git.ts";
 import { formatSessionDuration } from "./session.ts";
 import { readEffortLevel } from "./effort.ts";
 import { fetchUsageData } from "./usage.ts";
 import { checkForUpdate } from "./upgrade.ts";
 import type { UsageData } from "./usage.ts";
 import type { RenderOptions, RenderContext, StatusItem } from "./items/types.ts";
+import type { GitLinkConfig } from "./config.ts";
 import { DEFAULT_LINES } from "./config.ts";
+
+async function getRemoteInfo(cwd: string, gitLink: GitLinkConfig): Promise<RemoteInfo | null> {
+  if (!gitLink.enabled) return null;
+  const url = await getRemoteUrl(cwd, gitLink.remote);
+  if (!url) return null;
+  return parseRemoteUrl(url);
+}
 
 import { modelItem } from "./items/model.ts";
 import { contextItem } from "./items/context.ts";
@@ -69,12 +78,13 @@ export async function renderStatusLine(
   // Extract stdin rate_limits (Claude Code v2.1.80+)
   const stdinRateLimits = data.rate_limits as Record<string, unknown> | undefined;
 
-  // Parallel: git, effort, usage API (only if no stdin rate_limits), update check
-  const [gitInfo, effort, apiUsageData, updateInfo] = await Promise.all([
+  // Parallel: git, effort, usage API (only if no stdin rate_limits), update check, remote info
+  const [gitInfo, effort, apiUsageData, updateInfo, remoteInfo] = await Promise.all([
     getGitInfo(cwd),
     readEffortLevel(),
     stdinRateLimits ? Promise.resolve(null) : fetchUsageData(),
     checkForUpdate(),
+    getRemoteInfo(cwd, options.gitLink),
   ]);
 
   const usageData: UsageData | null = stdinRateLimits
@@ -94,6 +104,7 @@ export async function renderStatusLine(
     usageData,
     updateInfo,
     sessionDuration,
+    remoteInfo,
   };
 
   // Render each line from layout config

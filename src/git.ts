@@ -29,6 +29,42 @@ export function parseGitSymbols(input: string): Partial<GitSymbols> {
   return result;
 }
 
+export interface RemoteInfo {
+  host: string;
+  owner: string;
+  repo: string;
+}
+
+export async function getRemoteUrl(cwd: string, remote: string): Promise<string | null> {
+  const url = await exec(
+    ["git", "--no-optional-locks", "-C", cwd, "config", "--get", `remote.${remote}.url`],
+  );
+  return url && url.length > 0 ? url : null;
+}
+
+/** Parse a git remote URL into { host, owner, repo }. Returns null on unsupported formats. */
+export function parseRemoteUrl(url: string): RemoteInfo | null {
+  if (!url) return null;
+  const stripGit = (s: string) => s.replace(/\.git$/, "");
+
+  // Match protocol-prefixed URLs first so scp-like regex doesn't over-match:
+  //   ssh://[user@]host[:port]/owner/repo(.git)?
+  //   https://host/owner/repo(.git)?
+  //   http://host/owner/repo(.git)?
+  const proto = url.match(/^(?:ssh|https?):\/\/(?:[^@/\s]+@)?([^/:\s]+)(?::\d+)?\/([^/\s]+)\/(.+)$/);
+  if (proto) {
+    return { host: proto[1], owner: proto[2], repo: stripGit(proto[3]) };
+  }
+
+  // scp-like: git@host:owner/repo(.git)?  (no `://`)
+  const scp = url.match(/^[^@\s:]+@([^:\s]+):([^/\s]+)\/(.+)$/);
+  if (scp) {
+    return { host: scp[1], owner: scp[2], repo: stripGit(scp[3]) };
+  }
+
+  return null;
+}
+
 export interface GitInfo {
   /** Branch name, detached HEAD description, or null if not in a repo */
   branch: string | null;

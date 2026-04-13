@@ -21,9 +21,25 @@ export interface Config {
 
 // ── New config types ───────────────────────────────────
 
+export interface GitLinkConfig {
+  enabled: boolean;
+  template: string;
+  remote: string;
+}
+
+export const DEFAULT_GIT_LINK: GitLinkConfig = {
+  enabled: false,
+  template: "https://{host}/{owner}/{repo}/tree/{branch}",
+  remote: "origin",
+};
+
 export interface ItemsConfig {
   context?: { format?: string };
-  git?: { "path-style"?: string; symbols?: Partial<GitSymbols> };
+  git?: {
+    "path-style"?: string;
+    symbols?: Partial<GitSymbols>;
+    link?: Partial<GitLinkConfig>;
+  };
   vim?: { mode?: string };
   usage?: { "bar-style"?: string; "time-style"?: string };
   [key: string]: unknown;
@@ -142,6 +158,21 @@ export interface MergedConfig {
   defaults: Record<string, string>;
   configGitSymbols: Partial<GitSymbols>;
   lines: string[][];
+  gitLink: GitLinkConfig;
+}
+
+export function resolveGitLinkFromItems(items: ItemsConfig): GitLinkConfig {
+  const raw = items.git?.link;
+  if (!raw || typeof raw !== "object") return { ...DEFAULT_GIT_LINK };
+  return {
+    enabled: typeof raw.enabled === "boolean" ? raw.enabled : DEFAULT_GIT_LINK.enabled,
+    template: typeof raw.template === "string" && raw.template.length > 0
+      ? raw.template
+      : DEFAULT_GIT_LINK.template,
+    remote: typeof raw.remote === "string" && raw.remote.length > 0
+      ? raw.remote
+      : DEFAULT_GIT_LINK.remote,
+  };
 }
 
 export async function mergeDefaults(): Promise<MergedConfig> {
@@ -182,7 +213,10 @@ export async function mergeDefaults(): Promise<MergedConfig> {
   // Lines
   const lines = resolveLines(config);
 
-  return { defaults, configGitSymbols, lines };
+  // Git link
+  const gitLink = resolveGitLinkFromItems(items);
+
+  return { defaults, configGitSymbols, lines, gitLink };
 }
 
 // ── Config generation ──────────────────────────────────

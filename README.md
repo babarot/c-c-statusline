@@ -174,6 +174,7 @@ Options are organized per-item under the `items` section, plus a global `theme`:
 | `items.usage` | `time-style` | `absolute`, `relative` | `absolute` | Reset time format |
 | `items.git` | `path-style` | `parent`, `full`, `short`, `basename` | `parent` | Directory display style |
 | `items.git` | `symbols` | Map | See [below](#git-symbols) | Override git status symbols |
+| `items.git` | `link` | Map | See [below](#branch-link) | Make branch name a clickable link (OSC 8) |
 | `items.context` | `format` | Format string | `ctx {used}/{total} ({pct}%)` | Context display format |
 | `items.vim` | `mode` | `auto`, `always` | `auto` | Vim mode indicator behavior |
 
@@ -305,6 +306,39 @@ items:
 ```
 
 > Legacy: `options.git-symbols` also still works.
+
+### Branch link
+
+Turn the branch name into a clickable hyperlink (via [OSC 8](https://gist.github.com/egmontkob/eb114294efbcd5adb1944c9f3cb5feda) terminal escape sequences). When enabled, clicking the branch name in a supported terminal (iTerm2, WezTerm, Alacritty, kitty, Ghostty, etc.) opens the remote's branch page in your browser.
+
+```yaml
+items:
+  git:
+    link:
+      enabled: true
+```
+
+Defaults (fine for github.com / GitHub Enterprise):
+
+| Key | Default | Description |
+|---|---|---|
+| `enabled` | `false` | Opt-in. Set to `true` to enable |
+| `template` | `https://{host}/{owner}/{repo}/tree/{branch}` | URL template with placeholders |
+| `remote` | `origin` | Remote whose URL is parsed to derive `{host}/{owner}/{repo}` |
+
+Placeholders: `{host}`, `{owner}`, `{repo}`, `{branch}`.
+
+No link is generated (branch renders as plain text) when: the repo has no configured remote with the given name, the remote URL can't be parsed, HEAD is detached, or a template placeholder stays unresolved.
+
+For GitLab, point the template at `/-/tree/`:
+
+```yaml
+items:
+  git:
+    link:
+      enabled: true
+      template: "https://{host}/{owner}/{repo}/-/tree/{branch}"
+```
 
 ## What it shows
 
