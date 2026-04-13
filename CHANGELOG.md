@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.1](https://github.com/babarot/c-c-statusline/compare/0.3.0...0.3.1) - 2026-04-13
+### Improvements
+- Make git branch name clickable via OSC 8 hyperlinks by @babarot in https://github.com/babarot/c-c-statusline/pull/21
+
 ## [0.3.0](https://github.com/babarot/c-c-statusline/compare/0.2.6...0.3.0) - 2026-03-28
 ### New Features
 - Add config-driven layout with lines + items format by @babarot in https://github.com/babarot/c-c-statusline/pull/15
