@@ -16,12 +16,30 @@ Downloads a precompiled binary from GitHub Releases. No runtime dependencies nee
 # curl
 curl -fsSL https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.sh | bash
 
-# npx
-npx @babarot/c-c-statusline
-
 # deno
 deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.ts
 ```
+
+### Nix
+
+Each release is published to [babarot/nur-packages](https://github.com/babarot/nur-packages).
+
+```bash
+nix profile install github:babarot/nur-packages#c-c-statusline
+```
+
+Then point Claude Code at it in `~/.claude/settings.json`:
+
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "c-c-statusline"
+  }
+}
+```
+
+Update it through Nix; `c-c-statusline upgrade` cannot replace a binary in the Nix store.
 
 ### Build from source
 
@@ -51,9 +69,6 @@ Or during install:
 ```bash
 # curl
 curl -fsSL https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.sh | bash -s -- --init-config
-
-# npx
-npx @babarot/c-c-statusline --init-config
 
 # deno
 deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.ts --init-config
@@ -107,9 +122,6 @@ CLI flags override config file values. Pass flags during install to bake them in
 # curl
 curl -fsSL https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.sh \
   | bash -s -- --bar-style block --path-style short --theme tokyo-night
-
-# npx
-npx @babarot/c-c-statusline --bar-style block --path-style short --theme tokyo-night
 
 # deno
 deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.ts \
@@ -378,9 +390,6 @@ Detached HEAD is shown in red with a tag or short SHA.
 ```bash
 # curl
 curl -fsSL https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.sh | bash -s -- --uninstall
-
-# npx
-npx @babarot/c-c-statusline --uninstall
 
 # deno
 deno run -A https://raw.githubusercontent.com/babarot/c-c-statusline/main/bin/install.ts --uninstall
