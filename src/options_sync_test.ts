@@ -65,21 +65,3 @@ Deno.test("install.ts valueFlags includes all value flags", async () => {
     assertEquals(flags.includes(`"--${key}"`), true, `install.ts valueFlags missing "--${key}"`);
   }
 });
-
-// ── install.js: help text and valueFlags ────────────────
-Deno.test("install.js help text includes all option flags", async () => {
-  const src = await readFile("../bin/install.js");
-  for (const key of allFlags) {
-    assertEquals(src.includes(`--${key}`), true, `install.js help missing "--${key}"`);
-  }
-});
-
-Deno.test("install.js valueFlags includes all value flags", async () => {
-  const src = await readFile("../bin/install.js");
-  const match = src.match(/valueFlags\s*=\s*\[([^\]]+)\]/);
-  if (!match) throw new Error("Could not find valueFlags in install.js");
-  const flags = match[1];
-  for (const key of allFlags) {
-    assertEquals(flags.includes(`"--${key}"`), true, `install.js valueFlags missing "--${key}"`);
-  }
-});

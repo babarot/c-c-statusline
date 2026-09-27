@@ -3,7 +3,7 @@
 [tagpr]
 	releaseBranch = main
 	vPrefix = false
-	versionFile = src/version.ts,deno.json,package.json
+	versionFile = src/version.ts,deno.json
 	changelog = true
 	majorLabels = release/major,kind/breaking-change
 	minorLabels = release/minor,kind/feature,kind/deprecation
