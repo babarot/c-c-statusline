@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.3.2](https://github.com/babarot/c-c-statusline/compare/0.3.1...0.3.2) - 2026-10-09
+
+### Others
+- Stop publishing to npm by @babarot in https://github.com/babarot/c-c-statusline/pull/23
+
 ## [0.3.1](https://github.com/babarot/c-c-statusline/compare/0.3.0...0.3.1) - 2026-09-27
 
 ### Improvements
