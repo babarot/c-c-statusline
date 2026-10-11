@@ -42,6 +42,7 @@ export interface ItemsConfig {
   };
   vim?: { mode?: string };
   usage?: { "bar-style"?: string; "time-style"?: string };
+  session?: Partial<SessionConfig>;
   [key: string]: unknown;
 }
 
@@ -60,7 +61,7 @@ export const DEFAULT_LINES: string[][] = [
 
 /** All known item IDs. */
 export const KNOWN_ITEMS = new Set([
-  "model", "context", "git", "duration", "effort", "vim", "update", "usage",
+  "model", "context", "git", "duration", "effort", "vim", "update", "usage", "session",
 ]);
 
 // ── Config path ────────────────────────────────────────
@@ -159,6 +160,27 @@ export interface MergedConfig {
   configGitSymbols: Partial<GitSymbols>;
   lines: string[][];
   gitLink: GitLinkConfig;
+  session: SessionConfig;
+}
+
+export interface SessionConfig {
+  format: "short" | "full";
+  prefix: string;
+}
+
+export const DEFAULT_SESSION: SessionConfig = {
+  format: "short",
+  prefix: "#",
+};
+
+export function resolveSessionFromItems(items: ItemsConfig): SessionConfig {
+  const raw = items.session;
+  if (!raw || typeof raw !== "object") return { ...DEFAULT_SESSION };
+  return {
+    format: raw.format === "short" || raw.format === "full" ? raw.format : DEFAULT_SESSION.format,
+    // An empty prefix is allowed and hides the prefix.
+    prefix: typeof raw.prefix === "string" ? raw.prefix : DEFAULT_SESSION.prefix,
+  };
 }
 
 export function resolveGitLinkFromItems(items: ItemsConfig): GitLinkConfig {
@@ -216,7 +238,10 @@ export async function mergeDefaults(): Promise<MergedConfig> {
   // Git link
   const gitLink = resolveGitLinkFromItems(items);
 
-  return { defaults, configGitSymbols, lines, gitLink };
+  // Session
+  const session = resolveSessionFromItems(items);
+
+  return { defaults, configGitSymbols, lines, gitLink, session };
 }
 
 // ── Config generation ──────────────────────────────────

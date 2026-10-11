@@ -170,3 +170,38 @@ Deno.test("resolveGitLinkFromItems: empty remote falls back to default", () => {
   };
   assertEquals(resolveGitLinkFromItems(items).remote, DEFAULT_GIT_LINK.remote);
 });
+
+// ── resolveSessionFromItems ────────────────────────────
+
+import { DEFAULT_SESSION, resolveSessionFromItems } from "./config.ts";
+
+Deno.test("resolveSessionFromItems: returns defaults when no session config", () => {
+  assertEquals(resolveSessionFromItems({}), DEFAULT_SESSION);
+});
+
+Deno.test("resolveSessionFromItems: accepts short and full", () => {
+  assertEquals(resolveSessionFromItems({ session: { format: "short" } }).format, "short");
+  assertEquals(resolveSessionFromItems({ session: { format: "full" } }).format, "full");
+});
+
+Deno.test("resolveSessionFromItems: unknown format falls back to default", () => {
+  const items = { session: { format: "long" } } as unknown as ItemsConfig;
+  assertEquals(resolveSessionFromItems(items).format, DEFAULT_SESSION.format);
+});
+
+Deno.test("resolveSessionFromItems: custom prefix", () => {
+  assertEquals(resolveSessionFromItems({ session: { prefix: "sid:" } }).prefix, "sid:");
+});
+
+Deno.test("resolveSessionFromItems: empty prefix is kept", () => {
+  assertEquals(resolveSessionFromItems({ session: { prefix: "" } }).prefix, "");
+});
+
+Deno.test("resolveSessionFromItems: non-string prefix falls back to default", () => {
+  const items = { session: { prefix: 1 } } as unknown as ItemsConfig;
+  assertEquals(resolveSessionFromItems(items).prefix, DEFAULT_SESSION.prefix);
+});
+
+Deno.test("resolveLines: keeps session item", () => {
+  assertEquals(resolveLines({ lines: [["session"]] }), [["session"]]);
+});

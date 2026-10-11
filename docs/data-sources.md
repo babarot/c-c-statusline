@@ -29,6 +29,7 @@ cat ~/.claude/statusline-debug.json | python3 -m json.tool
 | `context_window.used_percentage` | number | Percentage of context used (0-100) |
 | `cwd` | string | Current working directory |
 | `session.start_time` | string | ISO 8601 session start time |
+| `session_id` | string | Session UUID |
 | `vim.mode` | string | Vim mode (`"NORMAL"` or `"INSERT"`). Only present when vim mode is enabled. |
 
 ### Fields available but not used
@@ -37,7 +38,6 @@ These fields exist in the JSON but are not currently displayed:
 
 | Field | Type | Description |
 |---|---|---|
-| `session_id` | string | Session UUID |
 | `transcript_path` | string | Path to session transcript |
 | `model.id` | string | Model identifier |
 | `workspace.project_dir` | string | Project directory |

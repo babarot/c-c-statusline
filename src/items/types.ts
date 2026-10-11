@@ -1,5 +1,5 @@
 import type { GitInfo, GitSymbols, RemoteInfo } from "../git.ts";
-import type { GitLinkConfig } from "../config.ts";
+import type { GitLinkConfig, SessionConfig } from "../config.ts";
 import type { UsageData } from "../usage.ts";
 
 /** Pre-fetched data shared across all status items. */
@@ -31,6 +31,7 @@ export interface RenderOptions {
   vimMode: "auto" | "always" | "off";
   modelName: "on" | "off";
   gitLink: GitLinkConfig;
+  session: SessionConfig;
 }
 
 /** A single status line display item. */

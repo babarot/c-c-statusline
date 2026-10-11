@@ -25,6 +25,7 @@ import { effortItem } from "./items/effort.ts";
 import { vimItem } from "./items/vim.ts";
 import { updateItem } from "./items/update.ts";
 import { usageItem } from "./items/usage.ts";
+import { sessionItem } from "./items/session.ts";
 
 export type { RenderOptions };
 
@@ -38,6 +39,7 @@ const itemRegistry: Record<string, StatusItem> = {
   vim: vimItem,
   update: updateItem,
   usage: usageItem,
+  session: sessionItem,
 };
 
 /** Resolve item IDs to StatusItem instances, skipping unknown IDs. */
