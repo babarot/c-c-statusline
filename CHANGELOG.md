@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/babarot/c-c-statusline/compare/0.3.1...0.4.0) - 2026-10-11
+
+### New Features
+- Add session item to show the session ID by @babarot in https://github.com/babarot/c-c-statusline/pull/29
+### Others
+- Stop publishing to npm by @babarot in https://github.com/babarot/c-c-statusline/pull/23
+
 ## [0.3.1](https://github.com/babarot/c-c-statusline/compare/0.3.0...0.3.1) - 2026-09-27
 
 ### Improvements
