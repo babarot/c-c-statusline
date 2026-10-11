@@ -7,7 +7,7 @@ import { defaultGitSymbols, parseGitSymbols } from "./git.ts";
 import { mergeDefaults, generateConfig, OPTION_DEFAULTS } from "./config.ts";
 import { performUpgrade } from "./upgrade.ts";
 
-const { defaults: mergedDefaults, configGitSymbols, lines, gitLink } = await mergeDefaults();
+const { defaults: mergedDefaults, configGitSymbols, lines, gitLink, session } = await mergeDefaults();
 
 const args = parseArgs(Deno.args, {
   boolean: ["help", "version", "debug", "init-config", "upgrade"],
@@ -124,6 +124,7 @@ const output = await renderStatusLine(data, {
   modelName: args["model-name"] as "on" | "off",
   gitSymbols,
   gitLink,
+  session,
 }, lines);
 
 console.log(output);

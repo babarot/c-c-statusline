@@ -150,7 +150,7 @@ lines:
   - [usage]                                                 # line 2+
 ```
 
-**Available items:** `model`, `context`, `git`, `duration`, `effort`, `vim`, `update`, `usage`
+**Available items:** `model`, `context`, `git`, `duration`, `effort`, `vim`, `update`, `usage`, `session`
 
 - Items are rendered left-to-right within each line, separated by `│`
 - Remove an item from `lines` to hide it
@@ -189,6 +189,8 @@ Options are organized per-item under the `items` section, plus a global `theme`:
 | `items.git` | `link` | Map | See [below](#branch-link) | Make branch name a clickable link (OSC 8) |
 | `items.context` | `format` | Format string | `ctx {used}/{total} ({pct}%)` | Context display format |
 | `items.vim` | `mode` | `auto`, `always` | `auto` | Vim mode indicator behavior |
+| `items.session` | `format` | `short`, `full` | `short` | Session ID display length |
+| `items.session` | `prefix` | String | `#` | Text shown before the session ID |
 
 > **Legacy support:** The flat `options` format (e.g. `options.bar-style`) still works for backward compatibility. CLI flags (e.g. `--bar-style`) also continue to work and override config file values.
 
@@ -269,6 +271,37 @@ items:
 Mode colors: `NORMAL` uses the theme's primary color, `INSERT` uses success (green).
 
 > Legacy: `--vim-mode off` and `options.vim-mode: "off"` still work.
+
+### session
+
+Shows the current session ID. It is not in the default layout; add `session` to `lines` to show it.
+
+| Value | Output |
+|---|---|
+| `short` | `# 8045a195` (first 8 characters) |
+| `full` | `# 8045a195-d2a7-49a1-852f-7fff313d4be0` |
+
+Use `full` when you want to copy the ID for `claude --resume <id>`. It is long, so put it on its own line:
+
+```yaml
+# ~/.claude/statusline.yaml
+lines:
+  - [model, context, git, duration, effort, vim, update]
+  - [usage]
+  - [session]
+
+items:
+  session:
+    format: full
+```
+
+`prefix` changes the text before the ID. Set it to an empty string to show the ID alone:
+
+| Value | Output |
+|---|---|
+| `"#"` | `# 8045a195` |
+| `"sid:"` | `sid: 8045a195` |
+| `""` | `8045a195` |
 
 ### Themes
 
