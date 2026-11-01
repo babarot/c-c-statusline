@@ -100,6 +100,7 @@ export async function renderStatusLine(
   // Build shared context for all items
   const ctx: RenderContext = {
     data,
+    now: Date.now(),
     options,
     gitInfo,
     effort,

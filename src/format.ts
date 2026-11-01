@@ -46,13 +46,14 @@ export function formatResetTime(
   isoStr: string | undefined | null,
   style: "time" | "datetime" | "date" = "date",
   timeStyle: "absolute" | "relative" = "absolute",
+  now: number = Date.now(),
 ): string {
   if (!isoStr || isoStr === "null") return "";
   const d = new Date(isoStr);
   if (isNaN(d.getTime())) return "";
 
   if (timeStyle === "relative") {
-    return formatRelativeTime(d);
+    return formatRelativeTime(d, now);
   }
 
   const months = [
@@ -82,8 +83,8 @@ export function formatResetTime(
   }
 }
 
-function formatRelativeTime(target: Date): string {
-  const diffMs = target.getTime() - Date.now();
+function formatRelativeTime(target: Date, now: number): string {
+  const diffMs = target.getTime() - now;
   if (diffMs <= 0) return "now";
 
   const totalMin = Math.floor(diffMs / 60_000);
