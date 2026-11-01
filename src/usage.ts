@@ -45,7 +45,7 @@ export async function fetchUsageData(): Promise<UsageData | null> {
       });
       if (resp.ok) {
         const data = await resp.json();
-        if (data?.five_hour) {
+        if (data?.five_hour || data?.seven_day) {
           data._fetched_at = Date.now();
           try {
             await Deno.mkdir(CACHE_DIR, { recursive: true });

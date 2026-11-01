@@ -389,7 +389,7 @@ items:
 
 **Line 1** (default): Model name, context usage (tokens + %), directory, git status, session duration, effort level, vim mode, update notification
 
-**Lines 2+** (default): Rate limit usage (current 5-hour window, weekly, extra credits when active)
+**Lines 2+** (default): Rate limit usage (current 5-hour window when your plan has one, weekly, extra credits when active)
 
 All items can be reordered, shown, or hidden via the [`lines` config](#layout).
 
