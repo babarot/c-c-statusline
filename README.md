@@ -186,6 +186,7 @@ Options are organized per-item under the `items` section, plus a global `theme`:
 | `items.usage` | `time-style` | `absolute`, `relative` | `absolute` | Reset time format |
 | `items.usage` | `pace` | `true`, `false` | `true` | Show how weekly usage compares to an even pace |
 | `items.usage` | `forecast` | `true`, `false` | `false` | Forecast whether weekly usage lasts until the reset |
+| `items.usage` | `today` | `true`, `false` | `false` | Show today's weekly usage against a daily budget |
 | `items.git` | `path-style` | `parent`, `full`, `short`, `basename` | `parent` | Directory display style |
 | `items.git` | `symbols` | Map | See [below](#git-symbols) | Override git status symbols |
 | `items.git` | `link` | Map | See [below](#branch-link) | Make branch name a clickable link (OSC 8) |
@@ -260,6 +261,23 @@ Turn it on with:
 items:
   usage:
     forecast: true
+```
+
+### today
+
+Adds a line with how much of the weekly limit was used today, against a daily budget: what was left at the start of the day, split evenly over the days until the reset. On the last day the budget is everything that is left. The bar turns yellow past 70% of the budget and red past it.
+
+```
+weekly  ▰▰▰▰▰▱▱▱▱▱  52% (+12pt ahead) ⟳ 4d 4h left
+today   ▰▰▰▰▰▰▰▰▱▱ +12pt of 14.1pt budget
+```
+
+A day starts at local midnight. Weekly usage is a running total, so the usage at the first render of each day is stored in `~/.claude/statusline-usage-today.json` (with a `.lock` file next to it) and subtracted. Usage before that first render (on claude.ai, for example) is not counted as today's.
+
+```yaml
+items:
+  usage:
+    today: true
 ```
 
 ### ctx-format

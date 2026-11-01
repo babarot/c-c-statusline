@@ -169,11 +169,14 @@ export interface UsageConfig {
   pace: boolean;
   /** Add a line forecasting whether weekly usage lasts until the reset at its average rate so far. */
   forecast: boolean;
+  /** Add a line with today's share of weekly usage against an even daily budget. */
+  today: boolean;
 }
 
 export const DEFAULT_USAGE: UsageConfig = {
   pace: true,
   forecast: false,
+  today: false,
 };
 
 export function resolveUsageFromItems(items: ItemsConfig): UsageConfig {
@@ -182,6 +185,7 @@ export function resolveUsageFromItems(items: ItemsConfig): UsageConfig {
   return {
     pace: typeof raw.pace === "boolean" ? raw.pace : DEFAULT_USAGE.pace,
     forecast: typeof raw.forecast === "boolean" ? raw.forecast : DEFAULT_USAGE.forecast,
+    today: typeof raw.today === "boolean" ? raw.today : DEFAULT_USAGE.today,
   };
 }
 
@@ -299,6 +303,7 @@ export async function generateConfig(defaults: OptionDefaults): Promise<void> {
         "time-style": defaults["time-style"],
         pace: DEFAULT_USAGE.pace,
         forecast: DEFAULT_USAGE.forecast,
+        today: DEFAULT_USAGE.today,
       },
     },
   };

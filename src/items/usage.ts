@@ -1,6 +1,7 @@
 import { colorForPct, dim, paint } from "../colors.ts";
 import { buildBar, buildPaceBar, formatDuration, formatResetTime } from "../format.ts";
 import type { UsageData } from "../usage.ts";
+import { todayUsage } from "../usage-today.ts";
 import { FIVE_HOUR_MS, forecast, SEVEN_DAY_MS, type WindowState, windowState } from "../usage-window.ts";
 import type { StatusItem, RenderContext } from "./types.ts";
 
@@ -13,6 +14,21 @@ interface LineOptions {
   now: number;
   pace: boolean;
   forecast: boolean;
+  todayBaseline: number | null;
+}
+
+/** Today's usage against the daily budget, or null when it is not known. */
+function renderTodayLine(state: WindowState | null, opts: LineOptions): string | null {
+  if (!state || opts.todayBaseline === null) return null;
+  const t = todayUsage(state, opts.todayBaseline, opts.now);
+  if (!t) return null;
+  const share = t.budget > 0 ? (t.used / t.budget) * 100 : 100;
+  const color = share > 100 ? "danger" : share > 70 ? "caution" : "success";
+  const head = paint("today", "muted") + " ".repeat(LABEL_WIDTH - "today".length);
+  const bar = buildBar(share, BAR_WIDTH, opts.barStyle, color);
+  return `${head}${bar} ${paint(`+${Math.round(t.used)}pt`, color)}${dim(" of ")}${
+    paint(`${t.budget.toFixed(1)}pt`, "muted")
+  }${dim(" budget")}`;
 }
 
 /** The forecast line for the weekly window, or null when there is no forecast to make. */
@@ -114,6 +130,8 @@ function renderRateLines(usageData: UsageData, opts: LineOptions): string {
     const line = renderForecastLine(sevenDay, opts.now);
     if (line) lines.push(line);
   }
+  const todayLine = renderTodayLine(sevenDay, opts);
+  if (todayLine) lines.push(todayLine);
 
   const anyExpired = fiveHour?.pct === null || sevenDay?.pct === null;
   const staleLabel = formatStaleness(usageData._fetched_at, opts.now);
@@ -139,6 +157,7 @@ export const usageItem: StatusItem = {
       now: ctx.now,
       pace: ctx.options.usage?.pace ?? false,
       forecast: ctx.options.usage?.forecast ?? false,
+      todayBaseline: ctx.options.usage?.today ? ctx.todayBaseline ?? null : null,
     });
   },
 };

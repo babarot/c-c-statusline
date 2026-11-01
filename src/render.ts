@@ -4,6 +4,8 @@ import type { RemoteInfo } from "./git.ts";
 import { formatSessionDuration } from "./session.ts";
 import { readEffortLevel } from "./effort.ts";
 import { fetchUsageData } from "./usage.ts";
+import { loadTodayBaseline } from "./usage-today.ts";
+import { SEVEN_DAY_MS, windowState } from "./usage-window.ts";
 import { checkForUpdate } from "./upgrade.ts";
 import type { UsageData } from "./usage.ts";
 import type { RenderOptions, RenderContext, StatusItem } from "./items/types.ts";
@@ -93,6 +95,10 @@ export async function renderStatusLine(
     ? convertStdinRateLimits(stdinRateLimits)
     : apiUsageData;
 
+  const now = Date.now();
+  const weekly = options.usage?.today ? windowState(usageData?.seven_day, SEVEN_DAY_MS, now) : null;
+  const todayBaseline = weekly ? await loadTodayBaseline(weekly, now) : null;
+
   const sessionDuration = formatSessionDuration(
     (data.session as Record<string, string>)?.start_time,
   );
@@ -100,11 +106,12 @@ export async function renderStatusLine(
   // Build shared context for all items
   const ctx: RenderContext = {
     data,
-    now: Date.now(),
+    now,
     options,
     gitInfo,
     effort,
     usageData,
+    todayBaseline,
     updateInfo,
     sessionDuration,
     remoteInfo,
