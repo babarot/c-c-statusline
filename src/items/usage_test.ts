@@ -2,6 +2,7 @@ import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { usageItem } from "./usage.ts";
 import type { RenderContext } from "./types.ts";
 import type { UsageData } from "../usage.ts";
+import { startOfLocalDay } from "../usage-today.ts";
 
 // deno-lint-ignore no-control-regex
 const stripAnsi = (s: string) => s.replace(/\x1b\[[0-9;]*m/g, "");
@@ -13,11 +14,17 @@ const HOUR = 60 * MIN;
 const DAY = 24 * HOUR;
 const at = (offsetMs: number) => new Date(NOW + offsetMs).toISOString();
 
-function render(usageData: UsageData | null, pace = false, forecast = false): string | null {
+function render(
+  usageData: UsageData | null,
+  pace = false,
+  forecast = false,
+  todayBaseline: number | null = null,
+): string | null {
   const ctx = {
     now: NOW,
     usageData,
-    options: { barStyle: "block", timeStyle: "relative", usage: { pace, forecast } },
+    todayBaseline,
+    options: { barStyle: "block", timeStyle: "relative", usage: { pace, forecast, today: todayBaseline !== null } },
   } as unknown as RenderContext;
   const out = usageItem.render(ctx);
   return out === null ? null : stripAnsi(out);
@@ -208,4 +215,34 @@ Deno.test("usageItem forecast: no line in the first 24 hours or when off", () =>
   const data = { seven_day: { utilization: 30, resets_at: at(6 * DAY + 2 * HOUR) } };
   assertEquals(render(data, false, true), "weekly  ▰▰▰▱▱▱▱▱▱▱  30% ⟳ 6d 2h left");
   assertEquals(render({ seven_day: { utilization: 40, resets_at: at(5 * DAY) } }), "weekly  ▰▰▰▰▱▱▱▱▱▱  40% ⟳ 5d left");
+});
+
+// ── today ────────────────────────────────────────────
+
+// Resets 4 days after the start of today in local time, so the budget does not depend on the time zone.
+const resetIn4Days = () => new Date(startOfLocalDay(NOW) + 4 * DAY).toISOString();
+const lastLine = (s: string | null) => s?.split("\n").at(-1);
+
+Deno.test("usageItem today: usage against the daily budget", () => {
+  const out = render({ seven_day: { utilization: 29, resets_at: resetIn4Days() } }, false, false, 20);
+  assertEquals(lastLine(out), "today   ▰▰▰▰▰▱▱▱▱▱ +9pt of 20.0pt budget");
+});
+
+Deno.test("usageItem today: over budget fills the bar", () => {
+  const out = render({ seven_day: { utilization: 50, resets_at: resetIn4Days() } }, false, false, 20);
+  assertEquals(lastLine(out), "today   ▰▰▰▰▰▰▰▰▰▰ +30pt of 20.0pt budget");
+});
+
+Deno.test("usageItem today: after the forecast line", () => {
+  // Midday, 2 days into the week with 40% used; started the day at 30%.
+  const out = render({ seven_day: { utilization: 40, resets_at: at(5 * DAY) } }, false, true, 30);
+  const lines = out?.split("\n") ?? [];
+  assertEquals(lines.length, 3);
+  assertEquals(lines[1], "forecast runs out in 3d, 2d before reset");
+  assertEquals(lines[2].startsWith("today   "), true);
+});
+
+Deno.test("usageItem today: no line without a baseline", () => {
+  const out = render({ seven_day: { utilization: 29, resets_at: resetIn4Days() } });
+  assertEquals(out?.split("\n").length, 1);
 });

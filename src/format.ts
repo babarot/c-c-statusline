@@ -1,4 +1,4 @@
-import { colorForPct, dim, paint } from "./colors.ts";
+import { type Color, colorForPct, dim, paint } from "./colors.ts";
 
 const barStyles: Record<string, [string, string]> = {
   dot: ["●", "○"],
@@ -131,11 +131,12 @@ export function buildPaceBar(pct: number, pacePct: number, width: number, style:
   return out;
 }
 
-export function buildBar(pct: number, width: number, style: string): string {
+/** A usage bar. The filled part is colored by usage unless `color` is given. */
+export function buildBar(pct: number, width: number, style: string, color?: Color): string {
   const clamped = Math.max(0, Math.min(100, pct));
   const filled = Math.round((clamped * width) / 100);
   const empty = width - filled;
   const [filledChar, emptyChar] = barStyles[style] ?? barStyles.dot;
-  return paint(filledChar.repeat(filled), colorForPct(clamped)) +
+  return paint(filledChar.repeat(filled), color ?? colorForPct(clamped)) +
     dim(emptyChar.repeat(empty));
 }

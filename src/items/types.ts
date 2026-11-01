@@ -16,6 +16,8 @@ export interface RenderContext {
   effort: string;
   /** API usage / rate limit data (null if unavailable). */
   usageData: UsageData | null;
+  /** Weekly usage at the first render of today (null if unknown or the today line is off). */
+  todayBaseline: number | null;
   /** Update check result. */
   updateInfo: { available: boolean; latest: string } | null;
   /** Formatted session duration (e.g. "5m", "1h23m"), empty if unavailable. */
