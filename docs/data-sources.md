@@ -74,7 +74,7 @@ Used only when the statusline JSON has no `rate_limits` (Claude Code before v2.1
 The OAuth token is resolved in priority order:
 1. `CLAUDE_CODE_OAUTH_TOKEN` environment variable
 2. macOS Keychain (`security find-generic-password`)
-3. `~/.claude/credentials.json`
+3. `~/.claude/.credentials.json`
 
 ### Caching
 
