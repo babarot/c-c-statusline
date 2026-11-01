@@ -185,6 +185,7 @@ Options are organized per-item under the `items` section, plus a global `theme`:
 | `items.usage` | `bar-style` | `dot`, `block`, `fill` | `dot` | Progress bar style |
 | `items.usage` | `time-style` | `absolute`, `relative` | `absolute` | Reset time format |
 | `items.usage` | `pace` | `true`, `false` | `true` | Show how weekly usage compares to an even pace |
+| `items.usage` | `forecast` | `true`, `false` | `false` | Forecast whether weekly usage lasts until the reset |
 | `items.git` | `path-style` | `parent`, `full`, `short`, `basename` | `parent` | Directory display style |
 | `items.git` | `symbols` | Map | See [below](#git-symbols) | Override git status symbols |
 | `items.git` | `link` | Map | See [below](#branch-link) | Make branch name a clickable link (OSC 8) |
@@ -237,6 +238,28 @@ Turn it off with:
 items:
   usage:
     pace: false
+```
+
+### forecast
+
+Adds a line below the weekly one that extends the average usage rate so far this week to the reset: when usage would reach 100% and how long before the reset that is, or roughly where it ends up if it lasts. It is red when usage would run out in less than half of the time left. There is no forecast for the first 24 hours of the week, while the average still swings, or before any usage.
+
+```
+weekly  ▰▰▰▰▱▱▱▱▱▱  40% (+11pt ahead) ⟳ 5d left
+forecast runs out in 3d, 2d before reset
+```
+
+```
+weekly  ▰▰▱┃▱▱▱▱▱▱  20% (-9pt under) ⟳ 5d left
+forecast lasts until reset (~70% at reset)
+```
+
+Turn it on with:
+
+```yaml
+items:
+  usage:
+    forecast: true
 ```
 
 ### ctx-format

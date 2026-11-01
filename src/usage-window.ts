@@ -44,3 +44,28 @@ export function windowState(
     elapsedRatio: Math.min(1, Math.max(0, elapsed)),
   };
 }
+
+/** Usage must have run this long before a forecast is made; earlier ones swing too much. */
+export const FORECAST_MIN_ELAPSED_MS = 24 * 60 * 60_000;
+
+export type Forecast =
+  | { kind: "lasts"; pctAtReset: number }
+  | { kind: "runs-out"; inMs: number; beforeResetMs: number };
+
+/**
+ * Extrapolate the average usage rate so far to the end of the window.
+ * Null when there is too little to go on: unknown usage or reset, no usage yet,
+ * the limit already reached, or less than FORECAST_MIN_ELAPSED_MS into the window.
+ */
+export function forecast(state: WindowState, windowMs: number, now: number): Forecast | null {
+  if (state.pct === null || state.resetAt === null || state.elapsedRatio === null) return null;
+  if (state.pct <= 0 || state.pct >= 100) return null;
+  const elapsedMs = state.elapsedRatio * windowMs;
+  if (elapsedMs < FORECAST_MIN_ELAPSED_MS) return null;
+
+  const rate = state.pct / elapsedMs; // percent per ms
+  const leftMs = state.resetAt.getTime() - now;
+  const inMs = (100 - state.pct) / rate;
+  if (inMs >= leftMs) return { kind: "lasts", pctAtReset: state.pct + rate * leftMs };
+  return { kind: "runs-out", inMs, beforeResetMs: leftMs - inMs };
+}

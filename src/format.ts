@@ -83,11 +83,10 @@ export function formatResetTime(
   }
 }
 
-function formatRelativeTime(target: Date, now: number): string {
-  const diffMs = target.getTime() - now;
-  if (diffMs <= 0) return "now";
-
-  const totalMin = Math.floor(diffMs / 60_000);
+/** A duration as "2d 5h", "1h 30m" or "45m". Minutes are dropped once it spans days. Empty under a minute. */
+export function formatDuration(ms: number): string {
+  if (ms <= 0) return "";
+  const totalMin = Math.floor(ms / 60_000);
   const days = Math.floor(totalMin / 1440);
   const hours = Math.floor((totalMin % 1440) / 60);
   const mins = totalMin % 60;
@@ -96,7 +95,12 @@ function formatRelativeTime(target: Date, now: number): string {
   if (days > 0) parts.push(`${days}d`);
   if (hours > 0) parts.push(`${hours}h`);
   if (mins > 0 && days === 0) parts.push(`${mins}m`);
-  return parts.length > 0 ? `${parts.join(" ")} left` : "now";
+  return parts.join(" ");
+}
+
+function formatRelativeTime(target: Date, now: number): string {
+  const duration = formatDuration(target.getTime() - now);
+  return duration ? `${duration} left` : "now";
 }
 
 /**

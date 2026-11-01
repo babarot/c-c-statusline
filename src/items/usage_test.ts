@@ -13,11 +13,11 @@ const HOUR = 60 * MIN;
 const DAY = 24 * HOUR;
 const at = (offsetMs: number) => new Date(NOW + offsetMs).toISOString();
 
-function render(usageData: UsageData | null, pace = false): string | null {
+function render(usageData: UsageData | null, pace = false, forecast = false): string | null {
   const ctx = {
     now: NOW,
     usageData,
-    options: { barStyle: "block", timeStyle: "relative", usage: { pace } },
+    options: { barStyle: "block", timeStyle: "relative", usage: { pace, forecast } },
   } as unknown as RenderContext;
   const out = usageItem.render(ctx);
   return out === null ? null : stripAnsi(out);
@@ -167,4 +167,45 @@ Deno.test("usageItem pace: none when usage or reset is unknown", () => {
   assertEquals(render({ seven_day: { utilization: 90, resets_at: at(-1 * DAY) } }, true), "weekly  ▱▱▱▱▱▱▱▱▱▱   ?% ⟳ 6d left");
   assertEquals(render({ seven_day: { utilization: 31 } }, true), "weekly  ▰▰▰▱▱▱▱▱▱▱  31% ⟳ ");
   assertEquals(render({}, true), "weekly  ▱▱▱▱▱▱▱▱▱▱   0% ⟳ ");
+});
+
+// ── forecast ─────────────────────────────────────────
+
+Deno.test("usageItem forecast: runs out before the reset", () => {
+  // 2 days into the week with 40% used.
+  const out = render({ seven_day: { utilization: 40, resets_at: at(5 * DAY) } }, false, true);
+  assertEquals(
+    out,
+    ["weekly  ▰▰▰▰▱▱▱▱▱▱  40% ⟳ 5d left", "forecast runs out in 3d, 2d before reset"].join("\n"),
+  );
+});
+
+Deno.test("usageItem forecast: lasts until the reset", () => {
+  const out = render({ seven_day: { utilization: 20, resets_at: at(5 * DAY) } }, false, true);
+  assertEquals(
+    out,
+    ["weekly  ▰▰▱▱▱▱▱▱▱▱  20% ⟳ 5d left", "forecast lasts until reset (~70% at reset)"].join("\n"),
+  );
+});
+
+Deno.test("usageItem forecast: with pace, and before the stale and extra lines", () => {
+  const out = render({
+    seven_day: { utilization: 40, resets_at: at(5 * DAY) },
+    extra_usage: { is_enabled: true, utilization: 10, used_credits: 500, monthly_limit: 5000 },
+  }, true, true);
+  assertEquals(
+    out,
+    [
+      "weekly  ▰▰▰▰▱▱▱▱▱▱  40% (+11pt ahead) ⟳ 5d left",
+      "forecast runs out in 3d, 2d before reset",
+      "extra   ▰▱▱▱▱▱▱▱▱▱ $5.00/$50.00",
+      "resets Dec 1",
+    ].join("\n"),
+  );
+});
+
+Deno.test("usageItem forecast: no line in the first 24 hours or when off", () => {
+  const data = { seven_day: { utilization: 30, resets_at: at(6 * DAY + 2 * HOUR) } };
+  assertEquals(render(data, false, true), "weekly  ▰▰▰▱▱▱▱▱▱▱  30% ⟳ 6d 2h left");
+  assertEquals(render({ seven_day: { utilization: 40, resets_at: at(5 * DAY) } }), "weekly  ▰▰▰▰▱▱▱▱▱▱  40% ⟳ 5d left");
 });
