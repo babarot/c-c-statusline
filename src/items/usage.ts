@@ -1,27 +1,16 @@
 import { colorForPct, dim, paint } from "../colors.ts";
 import { buildBar, formatResetTime } from "../format.ts";
 import type { UsageData } from "../usage.ts";
+import { FIVE_HOUR_MS, SEVEN_DAY_MS, type WindowState, windowState } from "../usage-window.ts";
 import type { StatusItem, RenderContext } from "./types.ts";
 
-/** Advance a past resets_at by windowMs increments until it's in the future. */
-function advanceReset(
-  isoStr: string | undefined | null,
-  windowMs: number,
-  now: number,
-): string | undefined | null {
-  if (!isoStr) return isoStr;
-  const t = new Date(isoStr).getTime();
-  if (isNaN(t)) return isoStr;
-  if (t >= now) return isoStr;
-  const periods = Math.ceil((now - t) / windowMs);
-  return new Date(t + periods * windowMs).toISOString();
-}
+const BAR_WIDTH = 10;
+const LABEL_WIDTH = 8;
 
-/** Check if a resets_at timestamp is in the past (window has rolled over). */
-function isWindowExpired(isoStr: string | undefined | null, now: number): boolean {
-  if (!isoStr) return false;
-  const t = new Date(isoStr).getTime();
-  return !isNaN(t) && t < now;
+interface LineOptions {
+  barStyle: string;
+  timeStyle: "absolute" | "relative";
+  now: number;
 }
 
 /** Format how old the cached data is (e.g. "3m", "2h"). */
@@ -36,63 +25,65 @@ function formatStaleness(fetchedAt: number | undefined, now: number): string {
   return remMins > 0 ? `${hours}h${remMins}m` : `${hours}h`;
 }
 
-function renderRateLines(
-  usageData: UsageData,
-  barStyle: string,
-  timeStyle: "absolute" | "relative",
-  now: number,
+/** One window as a line: label, bar, percentage and time to reset. */
+function renderWindowLine(
+  label: string,
+  state: WindowState,
+  resetStyle: "time" | "datetime",
+  opts: LineOptions,
 ): string {
-  const barWidth = 10;
-  const lines: string[] = [];
+  const head = paint(label, "muted") + " ".repeat(Math.max(1, LABEL_WIDTH - label.length));
+  const reset = formatResetTime(state.resetAt?.toISOString(), resetStyle, opts.timeStyle, opts.now);
+  const tail = `${dim("⟳")} ${paint(reset, "muted")}`;
 
-  const staleLabel = formatStaleness(usageData._fetched_at, now);
-  const fiveHourExpired = isWindowExpired(usageData.five_hour?.resets_at, now);
-  const sevenDayExpired = isWindowExpired(usageData.seven_day?.resets_at, now);
-
-  // Current (5-hour window)
-  const fiveHourResetAt = advanceReset(usageData.five_hour?.resets_at, 5 * 60 * 60_000, now);
-  const fiveHourReset = formatResetTime(fiveHourResetAt, "time", timeStyle, now);
-  if (fiveHourExpired) {
-    const emptyBar = buildBar(0, barWidth, barStyle);
-    lines.push(`${paint("current", "muted")} ${emptyBar} ${dim("  ?%")} ${dim("\u27F3")} ${paint(fiveHourReset, "muted")}`);
-  } else {
-    const fiveHourPct = Math.round(usageData.five_hour?.utilization ?? 0);
-    const fiveHourBar = buildBar(fiveHourPct, barWidth, barStyle);
-    const fiveHourPctFmt = String(fiveHourPct).padStart(3);
-    lines.push(`${paint("current", "muted")} ${fiveHourBar} ${paint(`${fiveHourPctFmt}%`, colorForPct(fiveHourPct))} ${dim("\u27F3")} ${paint(fiveHourReset, "muted")}`);
+  if (state.pct === null) {
+    return `${head}${buildBar(0, BAR_WIDTH, opts.barStyle)} ${dim("  ?%")} ${tail}`;
   }
+  const bar = buildBar(state.pct, BAR_WIDTH, opts.barStyle);
+  const pct = paint(`${String(state.pct).padStart(3)}%`, colorForPct(state.pct));
+  return `${head}${bar} ${pct} ${tail}`;
+}
 
-  // Weekly (7-day window)
-  const sevenDayResetAt = advanceReset(usageData.seven_day?.resets_at, 7 * 24 * 60 * 60_000, now);
-  const sevenDayReset = formatResetTime(sevenDayResetAt, "datetime", timeStyle, now);
-  if (sevenDayExpired) {
-    const emptyBar = buildBar(0, barWidth, barStyle);
-    lines.push(`${paint("weekly", "muted")}  ${emptyBar} ${dim("  ?%")} ${dim("\u27F3")} ${paint(sevenDayReset, "muted")}`);
-  } else {
-    const sevenDayPct = Math.round(usageData.seven_day?.utilization ?? 0);
-    const sevenDayBar = buildBar(sevenDayPct, barWidth, barStyle);
-    const sevenDayPctFmt = String(sevenDayPct).padStart(3);
-    lines.push(`${paint("weekly", "muted")}  ${sevenDayBar} ${paint(`${sevenDayPctFmt}%`, colorForPct(sevenDayPct))} ${dim("\u27F3")} ${paint(sevenDayReset, "muted")}`);
-  }
+/** An absent window is still drawn, as 0% with no reset. */
+const ABSENT: WindowState = { pct: 0, resetAt: null, elapsedRatio: null };
 
-  // Stale data indicator
-  if ((fiveHourExpired || sevenDayExpired) && staleLabel) {
+function renderExtraUsage(extra: NonNullable<UsageData["extra_usage"]>, opts: LineOptions): string[] {
+  const extraPct = Math.round(extra.utilization ?? 0);
+  const extraUsed = ((extra.used_credits ?? 0) / 100).toFixed(2);
+  const extraLimit = ((extra.monthly_limit ?? 0) / 100).toFixed(2);
+  const extraBar = buildBar(extraPct, BAR_WIDTH, opts.barStyle);
+
+  const today = new Date(opts.now);
+  const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const extraReset = `${months[nextMonth.getMonth()]} ${nextMonth.getDate()}`;
+
+  return [
+    `${paint("extra", "muted")}   ${extraBar} ${paint(`$${extraUsed}`, colorForPct(extraPct))}${dim("/")}${
+      paint(`$${extraLimit}`, "muted")
+    }`,
+    `${dim("resets")} ${paint(extraReset, "muted")}`,
+  ];
+}
+
+function renderRateLines(usageData: UsageData, opts: LineOptions): string {
+  const fiveHour = windowState(usageData.five_hour, FIVE_HOUR_MS, opts.now);
+  const sevenDay = windowState(usageData.seven_day, SEVEN_DAY_MS, opts.now);
+
+  const lines = [
+    renderWindowLine("current", fiveHour ?? ABSENT, "time", opts),
+    renderWindowLine("weekly", sevenDay ?? ABSENT, "datetime", opts),
+  ];
+
+  const anyExpired = fiveHour?.pct === null || sevenDay?.pct === null;
+  const staleLabel = formatStaleness(usageData._fetched_at, opts.now);
+  if (anyExpired && staleLabel) {
     lines.push(dim(`(stale: ${staleLabel} ago)`));
   }
 
-  if (usageData.extra_usage?.is_enabled && (usageData.extra_usage.used_credits ?? 0) > 0) {
-    const extraPct = Math.round(usageData.extra_usage.utilization ?? 0);
-    const extraUsed = ((usageData.extra_usage.used_credits ?? 0) / 100).toFixed(2);
-    const extraLimit = ((usageData.extra_usage.monthly_limit ?? 0) / 100).toFixed(2);
-    const extraBar = buildBar(extraPct, barWidth, barStyle);
-
-    const today = new Date(now);
-    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const extraReset = `${months[nextMonth.getMonth()]} ${nextMonth.getDate()}`;
-
-    lines.push(`${paint("extra", "muted")}   ${extraBar} ${paint(`$${extraUsed}`, colorForPct(extraPct))}${dim("/")}${paint(`$${extraLimit}`, "muted")}`);
-    lines.push(`${dim("resets")} ${paint(extraReset, "muted")}`);
+  const extra = usageData.extra_usage;
+  if (extra?.is_enabled && (extra.used_credits ?? 0) > 0) {
+    lines.push(...renderExtraUsage(extra, opts));
   }
 
   return lines.join("\n");
@@ -102,6 +93,10 @@ export const usageItem: StatusItem = {
   id: "usage",
   render(ctx: RenderContext): string | null {
     if (!ctx.usageData) return null;
-    return renderRateLines(ctx.usageData, ctx.options.barStyle, ctx.options.timeStyle, ctx.now);
+    return renderRateLines(ctx.usageData, {
+      barStyle: ctx.options.barStyle,
+      timeStyle: ctx.options.timeStyle,
+      now: ctx.now,
+    });
   },
 };
