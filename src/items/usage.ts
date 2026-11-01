@@ -1,7 +1,7 @@
 import { colorForPct, dim, paint } from "../colors.ts";
-import { buildBar, buildPaceBar, formatResetTime } from "../format.ts";
+import { buildBar, buildPaceBar, formatDuration, formatResetTime } from "../format.ts";
 import type { UsageData } from "../usage.ts";
-import { FIVE_HOUR_MS, SEVEN_DAY_MS, type WindowState, windowState } from "../usage-window.ts";
+import { FIVE_HOUR_MS, forecast, SEVEN_DAY_MS, type WindowState, windowState } from "../usage-window.ts";
 import type { StatusItem, RenderContext } from "./types.ts";
 
 const BAR_WIDTH = 10;
@@ -12,6 +12,20 @@ interface LineOptions {
   timeStyle: "absolute" | "relative";
   now: number;
   pace: boolean;
+  forecast: boolean;
+}
+
+/** The forecast line for the weekly window, or null when there is no forecast to make. */
+function renderForecastLine(state: WindowState | null, now: number): string | null {
+  const f = state ? forecast(state, SEVEN_DAY_MS, now) : null;
+  if (!f) return null;
+  const head = paint("forecast", "muted") + " ";
+  if (f.kind === "lasts") {
+    return `${head}${paint("lasts until reset", "success")} ${dim(`(~${Math.round(f.pctAtReset)}% at reset)`)}`;
+  }
+  const color = f.inMs < f.beforeResetMs ? "danger" : "caution";
+  const runsOut = paint(`runs out in ${formatDuration(f.inMs) || "<1m"}`, color);
+  return `${head}${runsOut}${dim(`, ${formatDuration(f.beforeResetMs) || "<1m"} before reset`)}`;
 }
 
 /** Points by which usage differs from an even pace through the window. */
@@ -96,6 +110,10 @@ function renderRateLines(usageData: UsageData, opts: LineOptions): string {
   const lines: string[] = [];
   if (fiveHour) lines.push(renderWindowLine("current", fiveHour, "time", opts));
   lines.push(renderWindowLine("weekly", sevenDay ?? ABSENT, "datetime", opts, opts.pace));
+  if (opts.forecast) {
+    const line = renderForecastLine(sevenDay, opts.now);
+    if (line) lines.push(line);
+  }
 
   const anyExpired = fiveHour?.pct === null || sevenDay?.pct === null;
   const staleLabel = formatStaleness(usageData._fetched_at, opts.now);
@@ -120,6 +138,7 @@ export const usageItem: StatusItem = {
       timeStyle: ctx.options.timeStyle,
       now: ctx.now,
       pace: ctx.options.usage?.pace ?? false,
+      forecast: ctx.options.usage?.forecast ?? false,
     });
   },
 };

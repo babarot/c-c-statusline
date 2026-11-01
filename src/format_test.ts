@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { buildPaceBar, formatTokens, formatPath, formatResetTime } from "./format.ts";
+import { buildPaceBar, formatDuration, formatTokens, formatPath, formatResetTime } from "./format.ts";
 import { dim, paint, setTheme } from "./colors.ts";
 
 // ── formatTokens ─────────────────────────────────────
@@ -165,4 +165,14 @@ Deno.test("buildPaceBar: paints cells past the pace as overspend", () => {
   );
   // At the end of the window, full usage is not overspend.
   assertEquals(buildPaceBar(100, 100, 10, "block"), paint("▰▰▰▰▰▰▰▰▰▰", "danger"));
+});
+
+Deno.test("formatDuration: days and hours, hours and minutes, or minutes", () => {
+  const MIN = 60_000;
+  assertEquals(formatDuration((2 * 24 * 60 + 5 * 60 + 30) * MIN), "2d 5h");
+  assertEquals(formatDuration(3 * 24 * 60 * MIN), "3d");
+  assertEquals(formatDuration(90 * MIN), "1h 30m");
+  assertEquals(formatDuration(45 * MIN), "45m");
+  assertEquals(formatDuration(30_000), "");
+  assertEquals(formatDuration(-MIN), "");
 });

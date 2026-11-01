@@ -208,9 +208,15 @@ Deno.test("resolveLines: keeps session item", () => {
 
 import { resolveUsageFromItems } from "./config.ts";
 
-Deno.test("resolveUsageFromItems: pace is on by default", () => {
-  assertEquals(resolveUsageFromItems({}), { pace: true });
-  assertEquals(resolveUsageFromItems({ usage: { "bar-style": "block" } }), { pace: true });
+Deno.test("resolveUsageFromItems: pace is on and forecast is off by default", () => {
+  assertEquals(resolveUsageFromItems({}), { pace: true, forecast: false });
+  assertEquals(resolveUsageFromItems({ usage: { "bar-style": "block" } }), { pace: true, forecast: false });
+});
+
+Deno.test("resolveUsageFromItems: forecast can be turned on", () => {
+  assertEquals(resolveUsageFromItems({ usage: { forecast: true } }).forecast, true);
+  const items = { usage: { forecast: "yes" } } as unknown as ItemsConfig;
+  assertEquals(resolveUsageFromItems(items).forecast, false);
 });
 
 Deno.test("resolveUsageFromItems: pace can be turned off", () => {

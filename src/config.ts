@@ -167,10 +167,13 @@ export interface MergedConfig {
 export interface UsageConfig {
   /** Mark the even-pace position on the weekly bar and label how far ahead or under it usage is. */
   pace: boolean;
+  /** Add a line forecasting whether weekly usage lasts until the reset at its average rate so far. */
+  forecast: boolean;
 }
 
 export const DEFAULT_USAGE: UsageConfig = {
   pace: true,
+  forecast: false,
 };
 
 export function resolveUsageFromItems(items: ItemsConfig): UsageConfig {
@@ -178,6 +181,7 @@ export function resolveUsageFromItems(items: ItemsConfig): UsageConfig {
   if (!raw || typeof raw !== "object") return { ...DEFAULT_USAGE };
   return {
     pace: typeof raw.pace === "boolean" ? raw.pace : DEFAULT_USAGE.pace,
+    forecast: typeof raw.forecast === "boolean" ? raw.forecast : DEFAULT_USAGE.forecast,
   };
 }
 
@@ -294,6 +298,7 @@ export async function generateConfig(defaults: OptionDefaults): Promise<void> {
         "bar-style": defaults["bar-style"],
         "time-style": defaults["time-style"],
         pace: DEFAULT_USAGE.pace,
+        forecast: DEFAULT_USAGE.forecast,
       },
     },
   };
