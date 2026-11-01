@@ -99,6 +99,34 @@ function formatRelativeTime(target: Date, now: number): string {
   return parts.length > 0 ? `${parts.join(" ")} left` : "now";
 }
 
+/**
+ * A bar with the even-pace position marked. Filled cells up to the pace keep the
+ * usual color; filled cells past it are painted as overspend. When usage is below
+ * the pace, the pace cell shows a marker instead.
+ */
+export function buildPaceBar(pct: number, pacePct: number, width: number, style: string): string {
+  const clamped = Math.max(0, Math.min(100, pct));
+  const filled = Math.round((clamped * width) / 100);
+  const paceFill = Math.round((Math.max(0, Math.min(100, pacePct)) * width) / 100);
+  const markerCell = Math.min(width - 1, paceFill);
+  const within = Math.min(filled, paceFill);
+  const [filledChar, emptyChar] = barStyles[style] ?? barStyles.dot;
+  const over = clamped - pacePct > 15 ? "danger" : "caution";
+
+  // Skip empty runs so no bare escape codes are emitted.
+  const run = (n: number, ch: string, color: (t: string) => string) => n > 0 ? color(ch.repeat(n)) : "";
+  let out = run(within, filledChar, (t) => paint(t, colorForPct(clamped)));
+  out += run(filled - within, filledChar, (t) => paint(t, over));
+  if (filled <= markerCell) {
+    out += run(markerCell - filled, emptyChar, dim);
+    out += paint("\u2503", "primary");
+    out += run(width - markerCell - 1, emptyChar, dim);
+  } else {
+    out += run(width - filled, emptyChar, dim);
+  }
+  return out;
+}
+
 export function buildBar(pct: number, width: number, style: string): string {
   const clamped = Math.max(0, Math.min(100, pct));
   const filled = Math.round((clamped * width) / 100);

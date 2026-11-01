@@ -184,6 +184,7 @@ Options are organized per-item under the `items` section, plus a global `theme`:
 | global | `theme` | See [Themes](#themes) | `default` | Color theme |
 | `items.usage` | `bar-style` | `dot`, `block`, `fill` | `dot` | Progress bar style |
 | `items.usage` | `time-style` | `absolute`, `relative` | `absolute` | Reset time format |
+| `items.usage` | `pace` | `true`, `false` | `true` | Show how weekly usage compares to an even pace |
 | `items.git` | `path-style` | `parent`, `full`, `short`, `basename` | `parent` | Directory display style |
 | `items.git` | `symbols` | Map | See [below](#git-symbols) | Override git status symbols |
 | `items.git` | `link` | Map | See [below](#branch-link) | Make branch name a clickable link (OSC 8) |
@@ -219,6 +220,24 @@ For `/Users/you/src/github.com/you/project`:
 |---|---|
 | `--time-style absolute` | `8:00pm`, `Mar 12, 2:00pm` |
 | `--time-style relative` | `1h 30m left`, `2d 5h left` |
+
+### pace
+
+Compares weekly usage with an even pace through the week: if the week is half over, 50% used is on pace. `┃` marks where even pace is on the bar, and cells past it turn yellow, or red when usage is more than 15 points ahead. The label says how far ahead or under it is; within 3 points it says `on pace`.
+
+```
+weekly  ▰▰▰▱▱▱▱▱▱▱  31% (+23pt ahead) ⟳ 6d 11h left
+weekly  ▰▰▰▰▰┃▱▱▱▱  51% (on pace) ⟳ 3d 12h left
+weekly  ▰▱▱▱▱┃▱▱▱▱  10% (-40pt under) ⟳ 3d 12h left
+```
+
+Turn it off with:
+
+```yaml
+items:
+  usage:
+    pace: false
+```
 
 ### ctx-format
 

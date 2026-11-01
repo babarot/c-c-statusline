@@ -13,11 +13,11 @@ const HOUR = 60 * MIN;
 const DAY = 24 * HOUR;
 const at = (offsetMs: number) => new Date(NOW + offsetMs).toISOString();
 
-function render(usageData: UsageData | null): string | null {
+function render(usageData: UsageData | null, pace = false): string | null {
   const ctx = {
     now: NOW,
     usageData,
-    options: { barStyle: "block", timeStyle: "relative" },
+    options: { barStyle: "block", timeStyle: "relative", usage: { pace } },
   } as unknown as RenderContext;
   const out = usageItem.render(ctx);
   return out === null ? null : stripAnsi(out);
@@ -129,4 +129,42 @@ Deno.test("usageItem: no extra usage lines when disabled or unused", () => {
   ].join("\n");
   assertEquals(render({ ...base, extra_usage: { is_enabled: false, used_credits: 1234 } }), expected);
   assertEquals(render({ ...base, extra_usage: { is_enabled: true, used_credits: 0 } }), expected);
+});
+
+// ── pace ─────────────────────────────────────────────
+
+Deno.test("usageItem pace: ahead of an even pace", () => {
+  // 13h into the week (7.7%) with 31% used.
+  const out = render({ seven_day: { utilization: 31, resets_at: at(6 * DAY + 11 * HOUR) } }, true);
+  assertEquals(out, "weekly  ▰▰▰▱▱▱▱▱▱▱  31% (+23pt ahead) ⟳ 6d 11h left");
+});
+
+Deno.test("usageItem pace: on pace within 3 points", () => {
+  const out = render({ seven_day: { utilization: 51, resets_at: at(3 * DAY + 12 * HOUR) } }, true);
+  assertEquals(out, "weekly  ▰▰▰▰▰┃▱▱▱▱  51% (on pace) ⟳ 3d 12h left");
+});
+
+Deno.test("usageItem pace: under an even pace", () => {
+  const out = render({ seven_day: { utilization: 10, resets_at: at(3 * DAY + 12 * HOUR) } }, true);
+  assertEquals(out, "weekly  ▰▱▱▱▱┃▱▱▱▱  10% (-40pt under) ⟳ 3d 12h left");
+});
+
+Deno.test("usageItem pace: only on the weekly line", () => {
+  const out = render({
+    five_hour: { utilization: 42, resets_at: at(2 * HOUR + 30 * MIN) },
+    seven_day: { utilization: 10, resets_at: at(3 * DAY + 12 * HOUR) },
+  }, true);
+  assertEquals(
+    out,
+    [
+      "current ▰▰▰▰▱▱▱▱▱▱  42% ⟳ 2h 30m left",
+      "weekly  ▰▱▱▱▱┃▱▱▱▱  10% (-40pt under) ⟳ 3d 12h left",
+    ].join("\n"),
+  );
+});
+
+Deno.test("usageItem pace: none when usage or reset is unknown", () => {
+  assertEquals(render({ seven_day: { utilization: 90, resets_at: at(-1 * DAY) } }, true), "weekly  ▱▱▱▱▱▱▱▱▱▱   ?% ⟳ 6d left");
+  assertEquals(render({ seven_day: { utilization: 31 } }, true), "weekly  ▰▰▰▱▱▱▱▱▱▱  31% ⟳ ");
+  assertEquals(render({}, true), "weekly  ▱▱▱▱▱▱▱▱▱▱   0% ⟳ ");
 });
