@@ -1,5 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { formatTokens, formatPath, formatResetTime } from "./format.ts";
+import { buildPaceBar, formatTokens, formatPath, formatResetTime } from "./format.ts";
+import { dim, paint, setTheme } from "./colors.ts";
 
 // ── formatTokens ─────────────────────────────────────
 
@@ -128,4 +129,40 @@ Deno.test("formatResetTime: relative style measures from the given now", () => {
   const target = new Date(now + (2 * 60 + 30) * 60_000).toISOString();
   assertEquals(formatResetTime(target, "time", "relative", now), "2h 30m left");
   assertEquals(formatResetTime(target, "time", "relative", now + 3 * 60 * 60_000), "now");
+});
+
+// ── buildPaceBar ─────────────────────────────────────
+
+// deno-lint-ignore no-control-regex
+const stripAnsi = (s: string) => s.replace(/\x1b\[[0-9;]*m/g, "");
+
+Deno.test("buildPaceBar: marks the pace cell when usage is below it", () => {
+  assertEquals(stripAnsi(buildPaceBar(10, 50, 10, "block")), "▰▱▱▱▱┃▱▱▱▱");
+  assertEquals(stripAnsi(buildPaceBar(0, 0, 10, "block")), "┃▱▱▱▱▱▱▱▱▱");
+  assertEquals(stripAnsi(buildPaceBar(30, 30, 10, "block")), "▰▰▰┃▱▱▱▱▱▱");
+});
+
+Deno.test("buildPaceBar: the marker stays on the last cell at the end of the window", () => {
+  assertEquals(stripAnsi(buildPaceBar(50, 100, 10, "block")), "▰▰▰▰▰▱▱▱▱┃");
+});
+
+Deno.test("buildPaceBar: no marker once usage passes the pace", () => {
+  assertEquals(stripAnsi(buildPaceBar(31, 7.7, 10, "block")), "▰▰▰▱▱▱▱▱▱▱");
+  assertEquals(stripAnsi(buildPaceBar(100, 100, 10, "block")), "▰▰▰▰▰▰▰▰▰▰");
+});
+
+Deno.test("buildPaceBar: paints cells past the pace as overspend", () => {
+  setTheme("default");
+  // 31% against a 7.7% pace: 1 cell within the pace, 2 cells over it by more than 15pt.
+  assertEquals(
+    buildPaceBar(31, 7.7, 10, "block"),
+    paint("▰", "success") + paint("▰▰", "danger") + dim("▱▱▱▱▱▱▱"),
+  );
+  // 40% against a 30% pace: 1 cell over by 10pt.
+  assertEquals(
+    buildPaceBar(40, 30, 10, "block"),
+    paint("▰▰▰", "success") + paint("▰", "caution") + dim("▱▱▱▱▱▱"),
+  );
+  // At the end of the window, full usage is not overspend.
+  assertEquals(buildPaceBar(100, 100, 10, "block"), paint("▰▰▰▰▰▰▰▰▰▰", "danger"));
 });

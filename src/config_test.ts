@@ -205,3 +205,19 @@ Deno.test("resolveSessionFromItems: non-string prefix falls back to default", ()
 Deno.test("resolveLines: keeps session item", () => {
   assertEquals(resolveLines({ lines: [["session"]] }), [["session"]]);
 });
+
+import { resolveUsageFromItems } from "./config.ts";
+
+Deno.test("resolveUsageFromItems: pace is on by default", () => {
+  assertEquals(resolveUsageFromItems({}), { pace: true });
+  assertEquals(resolveUsageFromItems({ usage: { "bar-style": "block" } }), { pace: true });
+});
+
+Deno.test("resolveUsageFromItems: pace can be turned off", () => {
+  assertEquals(resolveUsageFromItems({ usage: { pace: false } }).pace, false);
+});
+
+Deno.test("resolveUsageFromItems: ignores a non-boolean pace", () => {
+  const items = { usage: { pace: "no" } } as unknown as ItemsConfig;
+  assertEquals(resolveUsageFromItems(items).pace, true);
+});

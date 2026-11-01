@@ -41,7 +41,7 @@ export interface ItemsConfig {
     link?: Partial<GitLinkConfig>;
   };
   vim?: { mode?: string };
-  usage?: { "bar-style"?: string; "time-style"?: string };
+  usage?: { "bar-style"?: string; "time-style"?: string } & Partial<UsageConfig>;
   session?: Partial<SessionConfig>;
   [key: string]: unknown;
 }
@@ -161,6 +161,24 @@ export interface MergedConfig {
   lines: string[][];
   gitLink: GitLinkConfig;
   session: SessionConfig;
+  usage: UsageConfig;
+}
+
+export interface UsageConfig {
+  /** Mark the even-pace position on the weekly bar and label how far ahead or under it usage is. */
+  pace: boolean;
+}
+
+export const DEFAULT_USAGE: UsageConfig = {
+  pace: true,
+};
+
+export function resolveUsageFromItems(items: ItemsConfig): UsageConfig {
+  const raw = items.usage;
+  if (!raw || typeof raw !== "object") return { ...DEFAULT_USAGE };
+  return {
+    pace: typeof raw.pace === "boolean" ? raw.pace : DEFAULT_USAGE.pace,
+  };
 }
 
 export interface SessionConfig {
@@ -241,7 +259,10 @@ export async function mergeDefaults(): Promise<MergedConfig> {
   // Session
   const session = resolveSessionFromItems(items);
 
-  return { defaults, configGitSymbols, lines, gitLink, session };
+  // Usage
+  const usage = resolveUsageFromItems(items);
+
+  return { defaults, configGitSymbols, lines, gitLink, session, usage };
 }
 
 // ── Config generation ──────────────────────────────────
@@ -272,6 +293,7 @@ export async function generateConfig(defaults: OptionDefaults): Promise<void> {
       usage: {
         "bar-style": defaults["bar-style"],
         "time-style": defaults["time-style"],
+        pace: DEFAULT_USAGE.pace,
       },
     },
   };

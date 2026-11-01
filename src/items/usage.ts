@@ -1,5 +1,5 @@
 import { colorForPct, dim, paint } from "../colors.ts";
-import { buildBar, formatResetTime } from "../format.ts";
+import { buildBar, buildPaceBar, formatResetTime } from "../format.ts";
 import type { UsageData } from "../usage.ts";
 import { FIVE_HOUR_MS, SEVEN_DAY_MS, type WindowState, windowState } from "../usage-window.ts";
 import type { StatusItem, RenderContext } from "./types.ts";
@@ -11,6 +11,22 @@ interface LineOptions {
   barStyle: string;
   timeStyle: "absolute" | "relative";
   now: number;
+  pace: boolean;
+}
+
+/** Points by which usage differs from an even pace through the window. */
+export function paceDiff(state: WindowState): number | null {
+  if (state.pct === null || state.elapsedRatio === null) return null;
+  return state.pct - state.elapsedRatio * 100;
+}
+
+function paceLabel(diff: number): string {
+  const n = Math.round(diff);
+  let text: string;
+  if (Math.abs(diff) < 3) text = paint("on pace", "success");
+  else if (diff > 0) text = paint(`+${n}pt ahead`, diff > 15 ? "danger" : "caution");
+  else text = paint(`${n}pt under`, "success");
+  return `${dim("(")}${text}${dim(")")}`;
 }
 
 /** Format how old the cached data is (e.g. "3m", "2h"). */
@@ -31,6 +47,7 @@ function renderWindowLine(
   state: WindowState,
   resetStyle: "time" | "datetime",
   opts: LineOptions,
+  withPace = false,
 ): string {
   const head = paint(label, "muted") + " ".repeat(Math.max(1, LABEL_WIDTH - label.length));
   const reset = formatResetTime(state.resetAt?.toISOString(), resetStyle, opts.timeStyle, opts.now);
@@ -39,9 +56,13 @@ function renderWindowLine(
   if (state.pct === null) {
     return `${head}${buildBar(0, BAR_WIDTH, opts.barStyle)} ${dim("  ?%")} ${tail}`;
   }
-  const bar = buildBar(state.pct, BAR_WIDTH, opts.barStyle);
   const pct = paint(`${String(state.pct).padStart(3)}%`, colorForPct(state.pct));
-  return `${head}${bar} ${pct} ${tail}`;
+  const diff = withPace ? paceDiff(state) : null;
+  if (diff === null || state.elapsedRatio === null) {
+    return `${head}${buildBar(state.pct, BAR_WIDTH, opts.barStyle)} ${pct} ${tail}`;
+  }
+  const bar = buildPaceBar(state.pct, state.elapsedRatio * 100, BAR_WIDTH, opts.barStyle);
+  return `${head}${bar} ${pct} ${paceLabel(diff)} ${tail}`;
 }
 
 /** An absent weekly window is still drawn, as 0% with no reset. */
@@ -74,7 +95,7 @@ function renderRateLines(usageData: UsageData, opts: LineOptions): string {
   // while no window is active. Either way there is nothing to show.
   const lines: string[] = [];
   if (fiveHour) lines.push(renderWindowLine("current", fiveHour, "time", opts));
-  lines.push(renderWindowLine("weekly", sevenDay ?? ABSENT, "datetime", opts));
+  lines.push(renderWindowLine("weekly", sevenDay ?? ABSENT, "datetime", opts, opts.pace));
 
   const anyExpired = fiveHour?.pct === null || sevenDay?.pct === null;
   const staleLabel = formatStaleness(usageData._fetched_at, opts.now);
@@ -98,6 +119,7 @@ export const usageItem: StatusItem = {
       barStyle: ctx.options.barStyle,
       timeStyle: ctx.options.timeStyle,
       now: ctx.now,
+      pace: ctx.options.usage?.pace ?? false,
     });
   },
 };
