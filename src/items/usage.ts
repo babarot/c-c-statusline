@@ -44,7 +44,7 @@ function renderWindowLine(
   return `${head}${bar} ${pct} ${tail}`;
 }
 
-/** An absent window is still drawn, as 0% with no reset. */
+/** An absent weekly window is still drawn, as 0% with no reset. */
 const ABSENT: WindowState = { pct: 0, resetAt: null, elapsedRatio: null };
 
 function renderExtraUsage(extra: NonNullable<UsageData["extra_usage"]>, opts: LineOptions): string[] {
@@ -70,10 +70,11 @@ function renderRateLines(usageData: UsageData, opts: LineOptions): string {
   const fiveHour = windowState(usageData.five_hour, FIVE_HOUR_MS, opts.now);
   const sevenDay = windowState(usageData.seven_day, SEVEN_DAY_MS, opts.now);
 
-  const lines = [
-    renderWindowLine("current", fiveHour ?? ABSENT, "time", opts),
-    renderWindowLine("weekly", sevenDay ?? ABSENT, "datetime", opts),
-  ];
+  // The 5-hour window is absent on plans without it (Ultra), and on other plans
+  // while no window is active. Either way there is nothing to show.
+  const lines: string[] = [];
+  if (fiveHour) lines.push(renderWindowLine("current", fiveHour, "time", opts));
+  lines.push(renderWindowLine("weekly", sevenDay ?? ABSENT, "datetime", opts));
 
   const anyExpired = fiveHour?.pct === null || sevenDay?.pct === null;
   const staleLabel = formatStaleness(usageData._fetched_at, opts.now);

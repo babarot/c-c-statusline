@@ -1,6 +1,6 @@
 # Data Sources
 
-c-c-statusline gathers information from three sources:
+c-c-statusline gathers information from four sources:
 
 ## 1. Statusline JSON (stdin)
 
@@ -31,6 +31,12 @@ cat ~/.claude/statusline-debug.json | python3 -m json.tool
 | `session.start_time` | string | ISO 8601 session start time |
 | `session_id` | string | Session UUID |
 | `vim.mode` | string | Vim mode (`"NORMAL"` or `"INSERT"`). Only present when vim mode is enabled. |
+| `rate_limits.five_hour.used_percentage` | number | 5-hour window usage (0-100) |
+| `rate_limits.five_hour.resets_at` | number | Unix epoch seconds when the 5-hour window resets |
+| `rate_limits.seven_day.used_percentage` | number | Weekly usage (0-100) |
+| `rate_limits.seven_day.resets_at` | number | Unix epoch seconds when the weekly window resets |
+
+`rate_limits` (Claude Code v2.1.80+) is present only for Claude.ai subscribers, after the first API response. Each window is present only while the API reports it and its reset time has not passed, so `five_hour` is absent on plans without a 5-hour limit (Ultra) and while no 5-hour window is active. The `current` line is hidden when `five_hour` is absent.
 
 ### Fields available but not used
 
@@ -61,19 +67,19 @@ The effort level is set via `/think` commands in Claude Code:
 
 ## 3. Anthropic Usage API
 
-Rate limit data is fetched from `https://api.anthropic.com/api/oauth/usage` using the user's OAuth token.
+Used only when the statusline JSON has no `rate_limits` (Claude Code before v2.1.80, or before the first API response). Rate limit data is then fetched from `https://api.anthropic.com/api/oauth/usage` using the user's OAuth token.
 
 ### Authentication
 
 The OAuth token is resolved in priority order:
 1. `CLAUDE_CODE_OAUTH_TOKEN` environment variable
 2. macOS Keychain (`security find-generic-password`)
-3. `~/.claude/credentials.json`
+3. `~/.claude/.credentials.json`
 
 ### Caching
 
 - Cache file: `/tmp/claude/statusline-usage-cache.json`
-- TTL: 60 seconds
+- TTL: 120 seconds
 - On fetch failure, falls back to stale cache
 
 ### Data used
@@ -102,4 +108,4 @@ In-progress operations (rebase, merge, cherry-pick, etc.) are detected by readin
 | Model, context, cwd, session, vim mode | Statusline JSON (stdin) | Instant |
 | Effort level | `~/.claude/settings.json` | Disk read |
 | Git status | `git status` command | ~50ms |
-| Rate limits | Anthropic API (cached 60s) | 0-5s |
+| Rate limits | Statusline JSON (stdin), or Anthropic API (cached 120s) when absent | Instant, or 0-5s |

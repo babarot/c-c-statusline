@@ -41,17 +41,19 @@ Deno.test("usageItem: shows the 5-hour and weekly windows", () => {
   );
 });
 
-Deno.test("usageItem: missing 5-hour window renders as 0% with no reset", () => {
+Deno.test("usageItem: no current line without a 5-hour window", () => {
   const out = render({
     seven_day: { utilization: 31, resets_at: at(6 * DAY + 11 * HOUR) },
   });
-  assertEquals(
-    out,
-    [
-      "current ▱▱▱▱▱▱▱▱▱▱   0% ⟳ ",
-      "weekly  ▰▰▰▱▱▱▱▱▱▱  31% ⟳ 6d 11h left",
-    ].join("\n"),
-  );
+  assertEquals(out, "weekly  ▰▰▰▱▱▱▱▱▱▱  31% ⟳ 6d 11h left");
+});
+
+Deno.test("usageItem: stale label for an expired weekly window without a 5-hour window", () => {
+  const out = render({
+    seven_day: { utilization: 90, resets_at: at(-1 * DAY) },
+    _fetched_at: NOW - (2 * DAY),
+  });
+  assertEquals(out, ["weekly  ▱▱▱▱▱▱▱▱▱▱   ?% ⟳ 6d left", "(stale: 48h ago)"].join("\n"));
 });
 
 Deno.test("usageItem: expired windows show ?% and roll the reset forward", () => {
