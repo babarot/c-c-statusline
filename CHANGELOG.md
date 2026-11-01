@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.5.0](https://github.com/babarot/c-c-statusline/compare/0.4.0...0.5.0) - 2026-11-01
+
+### New Features
+- Show weekly usage against an even pace by @babarot in https://github.com/babarot/c-c-statusline/pull/33
+- Forecast whether weekly usage lasts until the reset by @babarot in https://github.com/babarot/c-c-statusline/pull/34
+- Show today's weekly usage against a daily budget by @babarot in https://github.com/babarot/c-c-statusline/pull/35
+### Improvements
+- Hide the current line when there is no 5-hour window by @babarot in https://github.com/babarot/c-c-statusline/pull/32
+### Refactorings
+- Pin usage item output in tests and split out its window math by @babarot in https://github.com/babarot/c-c-statusline/pull/30
+
 ## [0.4.0](https://github.com/babarot/c-c-statusline/compare/0.3.1...0.4.0) - 2026-10-11
 
 ### New Features
