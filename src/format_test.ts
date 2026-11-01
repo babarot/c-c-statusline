@@ -122,3 +122,10 @@ Deno.test("formatResetTime: relative style shows days", () => {
   const result = formatResetTime(future.toISOString(), "time", "relative");
   assertEquals(result, "2d 5h left");
 });
+
+Deno.test("formatResetTime: relative style measures from the given now", () => {
+  const now = Date.parse("2026-11-15T12:00:00Z");
+  const target = new Date(now + (2 * 60 + 30) * 60_000).toISOString();
+  assertEquals(formatResetTime(target, "time", "relative", now), "2h 30m left");
+  assertEquals(formatResetTime(target, "time", "relative", now + 3 * 60 * 60_000), "now");
+});

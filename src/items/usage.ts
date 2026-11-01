@@ -7,27 +7,27 @@ import type { StatusItem, RenderContext } from "./types.ts";
 function advanceReset(
   isoStr: string | undefined | null,
   windowMs: number,
+  now: number,
 ): string | undefined | null {
   if (!isoStr) return isoStr;
   const t = new Date(isoStr).getTime();
   if (isNaN(t)) return isoStr;
-  const now = Date.now();
   if (t >= now) return isoStr;
   const periods = Math.ceil((now - t) / windowMs);
   return new Date(t + periods * windowMs).toISOString();
 }
 
 /** Check if a resets_at timestamp is in the past (window has rolled over). */
-function isWindowExpired(isoStr: string | undefined | null): boolean {
+function isWindowExpired(isoStr: string | undefined | null, now: number): boolean {
   if (!isoStr) return false;
   const t = new Date(isoStr).getTime();
-  return !isNaN(t) && t < Date.now();
+  return !isNaN(t) && t < now;
 }
 
 /** Format how old the cached data is (e.g. "3m", "2h"). */
-function formatStaleness(fetchedAt: number | undefined): string {
+function formatStaleness(fetchedAt: number | undefined, now: number): string {
   if (!fetchedAt) return "";
-  const diffMs = Date.now() - fetchedAt;
+  const diffMs = now - fetchedAt;
   if (diffMs < 60_000) return "";
   const mins = Math.floor(diffMs / 60_000);
   if (mins < 60) return `${mins}m`;
@@ -36,17 +36,22 @@ function formatStaleness(fetchedAt: number | undefined): string {
   return remMins > 0 ? `${hours}h${remMins}m` : `${hours}h`;
 }
 
-function renderRateLines(usageData: UsageData, barStyle: string, timeStyle: "absolute" | "relative"): string {
+function renderRateLines(
+  usageData: UsageData,
+  barStyle: string,
+  timeStyle: "absolute" | "relative",
+  now: number,
+): string {
   const barWidth = 10;
   const lines: string[] = [];
 
-  const staleLabel = formatStaleness(usageData._fetched_at);
-  const fiveHourExpired = isWindowExpired(usageData.five_hour?.resets_at);
-  const sevenDayExpired = isWindowExpired(usageData.seven_day?.resets_at);
+  const staleLabel = formatStaleness(usageData._fetched_at, now);
+  const fiveHourExpired = isWindowExpired(usageData.five_hour?.resets_at, now);
+  const sevenDayExpired = isWindowExpired(usageData.seven_day?.resets_at, now);
 
   // Current (5-hour window)
-  const fiveHourResetAt = advanceReset(usageData.five_hour?.resets_at, 5 * 60 * 60_000);
-  const fiveHourReset = formatResetTime(fiveHourResetAt, "time", timeStyle);
+  const fiveHourResetAt = advanceReset(usageData.five_hour?.resets_at, 5 * 60 * 60_000, now);
+  const fiveHourReset = formatResetTime(fiveHourResetAt, "time", timeStyle, now);
   if (fiveHourExpired) {
     const emptyBar = buildBar(0, barWidth, barStyle);
     lines.push(`${paint("current", "muted")} ${emptyBar} ${dim("  ?%")} ${dim("\u27F3")} ${paint(fiveHourReset, "muted")}`);
@@ -58,8 +63,8 @@ function renderRateLines(usageData: UsageData, barStyle: string, timeStyle: "abs
   }
 
   // Weekly (7-day window)
-  const sevenDayResetAt = advanceReset(usageData.seven_day?.resets_at, 7 * 24 * 60 * 60_000);
-  const sevenDayReset = formatResetTime(sevenDayResetAt, "datetime", timeStyle);
+  const sevenDayResetAt = advanceReset(usageData.seven_day?.resets_at, 7 * 24 * 60 * 60_000, now);
+  const sevenDayReset = formatResetTime(sevenDayResetAt, "datetime", timeStyle, now);
   if (sevenDayExpired) {
     const emptyBar = buildBar(0, barWidth, barStyle);
     lines.push(`${paint("weekly", "muted")}  ${emptyBar} ${dim("  ?%")} ${dim("\u27F3")} ${paint(sevenDayReset, "muted")}`);
@@ -81,8 +86,8 @@ function renderRateLines(usageData: UsageData, barStyle: string, timeStyle: "abs
     const extraLimit = ((usageData.extra_usage.monthly_limit ?? 0) / 100).toFixed(2);
     const extraBar = buildBar(extraPct, barWidth, barStyle);
 
-    const now = new Date();
-    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const today = new Date(now);
+    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const extraReset = `${months[nextMonth.getMonth()]} ${nextMonth.getDate()}`;
 
@@ -97,6 +102,6 @@ export const usageItem: StatusItem = {
   id: "usage",
   render(ctx: RenderContext): string | null {
     if (!ctx.usageData) return null;
-    return renderRateLines(ctx.usageData, ctx.options.barStyle, ctx.options.timeStyle);
+    return renderRateLines(ctx.usageData, ctx.options.barStyle, ctx.options.timeStyle, ctx.now);
   },
 };

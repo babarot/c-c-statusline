@@ -6,6 +6,8 @@ import type { UsageData } from "../usage.ts";
 export interface RenderContext {
   /** Raw JSON from Claude Code stdin. */
   data: Record<string, unknown>;
+  /** Render time in epoch milliseconds, taken once per render. */
+  now: number;
   /** Resolved render options. */
   options: RenderOptions;
   /** Git repository information. */
