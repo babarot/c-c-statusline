@@ -1,4 +1,5 @@
-import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { paint, setTheme } from "../colors.ts";
 import { usageItem } from "./usage.ts";
 import type { RenderContext } from "./types.ts";
 import type { UsageData } from "../usage.ts";
@@ -154,6 +155,21 @@ Deno.test("usageItem pace: on pace within 3 points", () => {
 Deno.test("usageItem pace: under an even pace", () => {
   const out = render({ seven_day: { utilization: 10, resets_at: at(3 * DAY + 12 * HOUR) } }, true);
   assertEquals(out, "weekly  ▰▱▱▱▱┃▱▱▱▱  10% (-40pt under) ⟳ 3d 12h left");
+});
+
+Deno.test("usageItem pace: colors follow the pace, not the raw percentage", () => {
+  setTheme("default");
+  // 63% used with 8h left of the week (95% elapsed): far under the pace, so green.
+  const ctx = {
+    now: NOW,
+    usageData: { seven_day: { utilization: 63, resets_at: at(8 * HOUR) } },
+    todayBaseline: null,
+    options: { barStyle: "block", timeStyle: "relative", usage: { pace: true, forecast: false, today: false } },
+  } as unknown as RenderContext;
+  const out = usageItem.render(ctx)!;
+  assertStringIncludes(out, paint(" 63%", "success"));
+  assertStringIncludes(out, paint("-32pt under", "success"));
+  assertStringIncludes(out, paint("▰▰▰▰▰▰", "success"));
 });
 
 Deno.test("usageItem pace: only on the weekly line", () => {

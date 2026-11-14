@@ -1,4 +1,4 @@
-import { colorForPct, dim, paint } from "../colors.ts";
+import { colorForPace, colorForPct, dim, paint } from "../colors.ts";
 import { buildBar, buildPaceBar, formatDuration, formatResetTime } from "../format.ts";
 import type { UsageData } from "../usage.ts";
 import { todayUsage } from "../usage-today.ts";
@@ -54,8 +54,8 @@ function paceLabel(diff: number): string {
   const n = Math.round(diff);
   let text: string;
   if (Math.abs(diff) < 3) text = paint("on pace", "success");
-  else if (diff > 0) text = paint(`+${n}pt ahead`, diff > 15 ? "danger" : "caution");
-  else text = paint(`${n}pt under`, "success");
+  else if (diff > 0) text = paint(`+${n}pt ahead`, colorForPace(diff));
+  else text = paint(`${n}pt under`, colorForPace(diff));
   return `${dim("(")}${text}${dim(")")}`;
 }
 
@@ -86,11 +86,14 @@ function renderWindowLine(
   if (state.pct === null) {
     return `${head}${buildBar(0, BAR_WIDTH, opts.barStyle)} ${dim("  ?%")} ${tail}`;
   }
-  const pct = paint(`${String(state.pct).padStart(3)}%`, colorForPct(state.pct));
   const diff = withPace ? paceDiff(state) : null;
   if (diff === null || state.elapsedRatio === null) {
+    const pct = paint(`${String(state.pct).padStart(3)}%`, colorForPct(state.pct));
     return `${head}${buildBar(state.pct, BAR_WIDTH, opts.barStyle)} ${pct} ${tail}`;
   }
+  // With a pace to judge by, the color says whether usage is outrunning the
+  // window, not how full it is: 63% at 95% of the week is fine.
+  const pct = paint(`${String(state.pct).padStart(3)}%`, colorForPace(diff, state.pct));
   const bar = buildPaceBar(state.pct, state.elapsedRatio * 100, BAR_WIDTH, opts.barStyle);
   return `${head}${bar} ${pct} ${paceLabel(diff)} ${tail}`;
 }

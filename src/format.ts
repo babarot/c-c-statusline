@@ -1,4 +1,4 @@
-import { type Color, colorForPct, dim, paint } from "./colors.ts";
+import { type Color, colorForPace, colorForPct, dim, paint } from "./colors.ts";
 
 const barStyles: Record<string, [string, string]> = {
   dot: ["●", "○"],
@@ -104,9 +104,10 @@ function formatRelativeTime(target: Date, now: number): string {
 }
 
 /**
- * A bar with the even-pace position marked. Filled cells up to the pace keep the
- * usual color; filled cells past it are painted as overspend. When usage is below
- * the pace, the pace cell shows a marker instead.
+ * A bar with the even-pace position marked. Colors follow the pace, not the raw
+ * percentage: filled cells up to the pace are within budget, and filled cells past
+ * it are painted as overspend. When usage is below the pace, the pace cell shows a
+ * marker instead.
  */
 export function buildPaceBar(pct: number, pacePct: number, width: number, style: string): string {
   const clamped = Math.max(0, Math.min(100, pct));
@@ -115,11 +116,11 @@ export function buildPaceBar(pct: number, pacePct: number, width: number, style:
   const markerCell = Math.min(width - 1, paceFill);
   const within = Math.min(filled, paceFill);
   const [filledChar, emptyChar] = barStyles[style] ?? barStyles.dot;
-  const over = clamped - pacePct > 15 ? "danger" : "caution";
+  const over = colorForPace(clamped - pacePct);
 
   // Skip empty runs so no bare escape codes are emitted.
   const run = (n: number, ch: string, color: (t: string) => string) => n > 0 ? color(ch.repeat(n)) : "";
-  let out = run(within, filledChar, (t) => paint(t, colorForPct(clamped)));
+  let out = run(within, filledChar, (t) => paint(t, colorForPace(0, clamped)));
   out += run(filled - within, filledChar, (t) => paint(t, over));
   if (filled <= markerCell) {
     out += run(markerCell - filled, emptyChar, dim);

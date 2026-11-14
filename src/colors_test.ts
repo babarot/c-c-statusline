@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { colorForPct, setTheme } from "./colors.ts";
+import { colorForPace, colorForPct, setTheme } from "./colors.ts";
 
 Deno.test("colorForPct: returns success for low usage", () => {
   assertEquals(colorForPct(0), "success");
@@ -29,4 +29,21 @@ Deno.test("setTheme: does not throw for valid theme", () => {
 
 Deno.test("setTheme: does not throw for unknown theme (falls back)", () => {
   setTheme("unknown-theme");
+});
+
+Deno.test("colorForPace: under or near an even pace is success", () => {
+  assertEquals(colorForPace(-40), "success");
+  assertEquals(colorForPace(0), "success");
+  assertEquals(colorForPace(2.9), "success");
+});
+
+Deno.test("colorForPace: ahead of the pace is caution, then danger past 15pt", () => {
+  assertEquals(colorForPace(3), "caution");
+  assertEquals(colorForPace(15), "caution");
+  assertEquals(colorForPace(15.1), "danger");
+});
+
+Deno.test("colorForPace: a used-up window is danger even on pace", () => {
+  assertEquals(colorForPace(0, 100), "danger");
+  assertEquals(colorForPace(-5, 99), "success");
 });

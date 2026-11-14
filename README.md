@@ -225,7 +225,7 @@ For `/Users/you/src/github.com/you/project`:
 
 ### pace
 
-Compares weekly usage with an even pace through the week: if the week is half over, 50% used is on pace. `┃` marks where even pace is on the bar, and cells past it turn yellow, or red when usage is more than 15 points ahead. The label says how far ahead or under it is; within 3 points it says `on pace`.
+Compares weekly usage with an even pace through the week: if the week is half over, 50% used is on pace. `┃` marks where even pace is on the bar, and cells past it turn yellow, or red when usage is more than 15 points ahead. The label says how far ahead or under it is; within 3 points it says `on pace`. The percentage, the bar and the label are colored by the pace rather than by how full the window is: green when on or under pace, yellow when ahead, red when more than 15 points ahead or when the week is used up. Without pace, the percentage is colored by the usual thresholds (50%, 70%, 90%).
 
 ```
 weekly  ▰▰▰▱▱▱▱▱▱▱  31% (+23pt ahead) ⟳ 6d 11h left
