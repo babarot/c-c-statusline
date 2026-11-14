@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.5.1](https://github.com/babarot/c-c-statusline/compare/0.5.0...0.5.1) - 2026-11-14
+
+### Improvements
+- Color the weekly line by pace instead of raw percentage by @babarot in https://github.com/babarot/c-c-statusline/pull/38
+
 ## [0.5.0](https://github.com/babarot/c-c-statusline/compare/0.4.0...0.5.0) - 2026-11-01
 
 ### New Features
