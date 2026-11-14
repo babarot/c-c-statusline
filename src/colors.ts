@@ -20,4 +20,15 @@ export function colorForPct(pct: number): Color {
   return "success";
 }
 
+/**
+ * Color for usage judged against an even pace through the window: `diff` is the
+ * points by which usage is ahead of it (negative when under). A window used up
+ * is danger whatever the pace, since nothing more can be used until it resets.
+ */
+export function colorForPace(diff: number, pct = 0): Color {
+  if (pct >= 100 || diff > 15) return "danger";
+  if (diff >= 3) return "caution";
+  return "success";
+}
+
 export const dim = stdDim;
